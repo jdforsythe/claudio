@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Claudio Plan</title>
+<style>html{color-scheme:light dark} body{font-size:14px} img{max-width:100%} [hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: fixed left rail of section links on wide screens, single column with a top jump bar on phones.
+   Content column holds ~68ch of running text; tables and diagrams may run wider inside scroll containers. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-2: #e9edf1;
+  --fg: #16202b;
+  --fg-muted: #5a6b7c;
+  --line: #d3dae2;
+  --accent: #0c7c74;
+  --accent-soft: #d6efec;
+  --warn: #b7791f;
+  --warn-soft: #f7ebd2;
+  --bad: #b23a3a;
+  --bad-soft: #f6dcdc;
+  --code-bg: #eef2f5;
+  --display: "Bricolage Grotesque", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --rail: 232px;
+  --maxw: 860px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151c; --surface: #161e27; --surface-2: #1e2833; --fg: #e6ebf0; --fg-muted: #99a7b5;
+    --line: #2a3643; --accent: #4fc3b8; --accent-soft: #123b38; --warn: #e0a84a; --warn-soft: #3a2d12;
+    --bad: #e07070; --bad-soft: #3c1c1c; --code-bg: #1a232d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151c; --surface: #161e27; --surface-2: #1e2833; --fg: #e6ebf0; --fg-muted: #99a7b5;
+  --line: #2a3643; --accent: #4fc3b8; --accent-soft: #123b38; --warn: #e0a84a; --warn-soft: #3a2d12;
+  --bad: #e07070; --bad-soft: #3c1c1c; --code-bg: #1a232d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.6; margin: 0; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); gap: 0; min-height: 100%; }
+nav.rail { position: sticky; top: env(safe-area-inset-top, 0px); align-self: start; height: 100vh; overflow-y: auto; padding: 28px 16px 28px 20px; border-right: 1px solid var(--line); background: var(--bg); }
+nav.rail .brand { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; margin: 0 0 4px; }
+nav.rail .sub { color: var(--fg-muted); font-size: 12px; margin: 0 0 20px; }
+nav.rail ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+nav.rail a { display: block; padding: 5px 8px; border-radius: 6px; color: var(--fg-muted); text-decoration: none; font-size: 13.5px; }
+nav.rail a:hover { background: var(--surface-2); color: var(--fg); }
+nav.rail a.active { background: var(--accent-soft); color: var(--fg); }
+nav.rail .num { font-family: var(--mono); font-size: 11px; color: var(--fg-muted); margin-right: 6px; }
+main { padding: 36px clamp(16px, 4vw, 56px) 96px; min-width: 0; }
+.col { max-width: var(--maxw); }
+header.hero { max-width: var(--maxw); margin-bottom: 40px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 5vw, 52px); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 16px; text-wrap: balance; }
+.lede { font-size: 19px; line-height: 1.5; color: var(--fg); max-width: 62ch; margin: 0 0 20px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--fg-muted); font-size: 13.5px; }
+.meta span b { color: var(--fg); font-weight: 600; }
+section { max-width: var(--maxw); padding-top: 40px; margin-top: 24px; border-top: 1px solid var(--line); }
+section:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: -0.015em; line-height: 1.15; margin: 0 0 14px; text-wrap: balance; }
+h2 .num { font-family: var(--mono); font-size: 14px; color: var(--fg-muted); font-weight: 500; display: block; margin-bottom: 6px; letter-spacing: 0; }
+h3 { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 32px 0 10px; letter-spacing: -0.01em; }
+h4 { font-family: var(--body); font-weight: 600; font-size: 15px; margin: 22px 0 6px; }
+p { max-width: 68ch; margin: 0 0 14px; }
+ul, ol { max-width: 68ch; padding-left: 22px; margin: 0 0 14px; }
+li { margin: 0 0 6px; }
+li::marker { color: var(--fg-muted); }
+code, kbd { font-family: var(--mono); font-size: 0.9em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+kbd { border: 1px solid var(--line); border-bottom-width: 2px; background: var(--surface); }
+pre.code { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 0 0 16px; }
+pre.code code { background: none; padding: 0; font-size: inherit; }
+.tablewrap { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 520px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; font-size: 12.5px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--fg-muted); background: var(--surface-2); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { font-variant-numeric: tabular-nums; text-align: right; }
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 12px 6px; margin: 0 0 18px; overflow-x: auto; }
+.diagram .cap { font-size: 13px; color: var(--fg-muted); margin: 0 4px 6px; }
+pre.mermaid { margin: 0; background: transparent; display: flex; justify-content: center; }
+.callout { border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 0 0 18px; max-width: 68ch; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .k { font-weight: 600; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.pill { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg-muted); }
+.pill.on { background: var(--accent-soft); border-color: transparent; color: var(--fg); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 0 0 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.card h4 { margin: 0 0 6px; }
+.card p { font-size: 14.5px; margin: 0; color: var(--fg); }
+.card .tag { font-family: var(--mono); font-size: 11.5px; color: var(--fg-muted); display: block; margin-bottom: 4px; }
+.vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 0 0 20px; }
+.vs .card ul { padding-left: 18px; margin: 0; font-size: 14.5px; }
+.vs .card ul li { margin-bottom: 5px; }
+.vs .was h4 { color: var(--bad); }
+.vs .now h4 { color: var(--accent); }
+/* UI mockups */
+.mock { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin: 0 0 18px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.mock .label { font-family: var(--mono); font-size: 11.5px; color: var(--fg-muted); margin-bottom: 8px; display: block; }
+.hud { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; max-width: 320px; box-shadow: 0 6px 24px rgba(0,0,0,0.12); font-size: 13px; }
+.hud .row { display: flex; align-items: center; gap: 10px; }
+.hud .bar { width: 4px; height: 28px; border-radius: 2px; background: #c86b2b; }
+.hud .title { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud .state { color: var(--fg-muted); font-size: 12px; }
+.hud .prog { height: 3px; background: var(--surface-2); border-radius: 2px; margin: 8px 0 6px; overflow: hidden; }
+.hud .prog i { display: block; height: 100%; width: 42%; background: var(--accent); }
+.hud .ctl { display: flex; gap: 6px; }
+.hud .ctl span { border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--fg-muted); }
+.hud .prompt { margin-top: 8px; background: var(--warn-soft); border-radius: 6px; padding: 6px 8px; font-size: 12.5px; display: flex; justify-content: space-between; gap: 8px; }
+.hud .cap { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 13px; line-height: 1.45; color: var(--fg-muted); }
+.hud .cap mark { background: var(--accent-soft); color: var(--fg); padding: 0 2px; border-radius: 3px; }
+.pop { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; width: 100%; max-width: 360px; box-shadow: 0 6px 24px rgba(0,0,0,0.12); font-size: 13px; overflow: hidden; }
+.pop .head { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.pop .head span { border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--fg-muted); }
+.pop .sess { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+.pop .sess:last-of-type { border-bottom: 0; }
+.pop .dot { width: 10px; height: 10px; border-radius: 50%; }
+.pop .sess .t { font-weight: 600; }
+.pop .sess .s { color: var(--fg-muted); font-size: 12px; }
+.pop .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; font-size: 11.5px; }
+.pop .seg span { padding: 2px 7px; color: var(--fg-muted); }
+.pop .seg span.on { background: var(--accent-soft); color: var(--fg); }
+.pop .unread { background: var(--accent); color: #fff; border-radius: 999px; font-size: 11px; padding: 0 7px; margin-left: 6px; }
+.pop .foot { padding: 8px 12px; border-top: 1px solid var(--line); color: var(--fg-muted); font-size: 12px; display: flex; justify-content: space-between; }
+/* Timeline */
+.timeline { display: grid; gap: 0; margin: 0 0 18px; }
+.ms { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.ms:last-child { border-bottom: 0; }
+.ms .n { font-family: var(--display); font-weight: 700; font-size: 22px; color: var(--accent); line-height: 1.1; }
+.ms .n small { display: block; font-family: var(--mono); font-size: 11px; color: var(--fg-muted); font-weight: 400; }
+.ms h4 { margin: 0 0 4px; }
+.ms p { font-size: 14.5px; margin: 0 0 6px; }
+.ms .acc { font-size: 13.5px; color: var(--fg-muted); }
+/* Decisions */
+details.dec { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 0 0 8px; }
+details.dec summary { cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 14.5px; list-style: none; display: flex; gap: 10px; align-items: baseline; }
+details.dec summary::-webkit-details-marker { display: none; }
+details.dec summary .id { font-family: var(--mono); font-size: 12px; color: var(--accent); min-width: 42px; }
+details.dec .body { padding: 0 14px 12px 66px; font-size: 14.5px; color: var(--fg); }
+details.dec .body p { margin: 0 0 8px; }
+.toplinks { display: none; }
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: 1fr; }
+  nav.rail { display: none; }
+  .toplinks { display: block; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding: 8px 16px; overflow-x: auto; white-space: nowrap; }
+  .toplinks a { display: inline-block; font-size: 13px; color: var(--fg-muted); text-decoration: none; padding: 4px 8px; border-radius: 6px; margin-right: 2px; }
+  .toplinks a.active { background: var(--accent-soft); color: var(--fg); }
+  main { padding-top: 24px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+
+<div class="toplinks" id="toplinks"></div>
+<div class="wrap">
+<nav class="rail" aria-label="Sections">
+  <p class="brand">Claudio</p>
+  <p class="sub">Plan review · 2026-10-09</p>
+  <ol id="railnav">
+    <li><a href="#why"><span class="num">01</span>Why</a></li>
+    <li><a href="#how"><span class="num">02</span>How it works</a></li>
+    <li><a href="#behaviour"><span class="num">03</span>Behaviour contracts</a></li>
+    <li><a href="#ingest"><span class="num">04</span>Reading the transcript</a></li>
+    <li><a href="#hooks"><span class="num">05</span>Hooks and CLI</a></li>
+    <li><a href="#speech"><span class="num">06</span>Speech pipeline</a></li>
+    <li><a href="#backends"><span class="num">07</span>Voices</a></li>
+    <li><a href="#ui"><span class="num">08</span>Interface</a></li>
+    <li><a href="#config"><span class="num">09</span>Settings and footprint</a></li>
+    <li><a href="#quality"><span class="num">10</span>Testing and build</a></li>
+    <li><a href="#milestones"><span class="num">11</span>Milestones</a></li>
+    <li><a href="#decisions"><span class="num">12</span>Decisions</a></li>
+    <li><a href="#risks"><span class="num">13</span>Risks</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <p class="eyebrow">Engineering plan · macOS · Swift</p>
+  <h1>Claudio reads Claude Code aloud, across every session you have open.</h1>
+  <p class="lede">A native menu bar app that tails Claude Code's transcripts, speaks what matters with no gaps between sentences, stops the instant you type, and keeps track of several sessions at once so you can switch and catch up.</p>
+  <div class="meta">
+    <span><b>Status</b> fully specified, not yet implemented</span>
+    <span><b>Spec</b> 14 documents, 49k words, in <code>docs/</code></span>
+    <span><b>Platform</b> macOS 15+, Swift 6, no Xcode required</span>
+    <span><b>Default voice</b> edge-tts, Swift port</span>
+  </div>
+</header>
+
+<section id="why">
+  <h2><span class="num">01</span>Why build it</h2>
+  <p>Hearing Claude Code work is useful. A prototype (claude-speak) proved it: with voices far better than the built-in Mac ones, you can keep Claude in its normal terminal mode and listen as it goes. The prototype also showed exactly where the naive design breaks.</p>
+  <div class="vs">
+    <div class="card was">
+      <h4>What the prototype got wrong</h4>
+      <ul>
+        <li>Each sentence is a full synthesis round trip plus a new player process. Audible gaps everywhere.</li>
+        <li>Nothing stops it. Submit a new prompt and it keeps reading the old answer.</li>
+        <li>Tracks one transcript at a time, picked by a heuristic. A second session is silently dropped.</li>
+        <li>Config is CLI flags that need a restart, plus a half-working web page.</li>
+        <li>Installs scripts into <code>~/.claude/tools</code> and runs as a terminal background job with no UI.</li>
+        <li>Speaks every block equally, including "Let me read that file."</li>
+      </ul>
+    </div>
+    <div class="card now">
+      <h4>What Claudio does instead</h4>
+      <ul>
+        <li>Synthesizes two sentences ahead into one gapless audio queue. Gaps under 50 ms.</li>
+        <li>Cancels in about 35 ms when you submit a prompt, with a short fade so there is no click.</li>
+        <li>Discovers every live session automatically. One holds the voice; the others announce when they finish or need you.</li>
+        <li>Every setting applies on the next sentence. No restarts, no flags.</li>
+        <li>A real menu bar app with a popover, a floating HUD and a settings window. Zero footprint in <code>~/.claude</code> unless you opt in.</li>
+        <li>Three levels per session: just answers, answers plus narration, or events only.</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Performance budgets the design is held to</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Metric</th><th class="num">Budget</th></tr></thead>
+    <tbody>
+      <tr><td>Transcript write to speech item emitted</td><td class="num">300 ms</td></tr>
+      <tr><td>Sentence ready to first audio, edge-tts warm</td><td class="num">1200 ms</td></tr>
+      <tr><td>Sentence ready to first audio, Apple voice</td><td class="num">150 ms</td></tr>
+      <tr><td>Gap between sentences</td><td class="num">50 ms</td></tr>
+      <tr><td>Prompt submitted to audio stopped, with hooks</td><td class="num">100 ms</td></tr>
+      <tr><td>Prompt submitted to audio stopped, transcript only</td><td class="num">600 ms</td></tr>
+      <tr><td>Hook receiver process lifetime</td><td class="num">20 ms</td></tr>
+      <tr><td>Idle CPU / memory</td><td class="num">0.5 % / 80 MB</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="how">
+  <h2><span class="num">02</span>How it works</h2>
+  <p>Two executables share one Swift package. The app owns all state and is the only process that touches audio. A tiny command-line tool, <code>claudio</code>, lives inside the app bundle and does two jobs: it is the hook receiver that Claude Code executes, and it is the user's CLI. Both talk to the app over a local Unix socket.</p>
+  <div class="diagram">
+    <p class="cap">System overview. Solid arrows carry data; the dashed arrow is the opt-in hook path.</p>
+    <pre class="mermaid">
+%%{init: {'theme':'neutral', 'themeVariables': {'fontFamily':'IBM Plex Sans, sans-serif','fontSize':'13px'}}}%%
+flowchart LR
+  subgraph CC[Claude Code sessions]
+    T1[terminal session]
+    T2[Claude Desktop session]
+    T3[Orca worktree session]
+  end
+  J[(~/.claude/projects/**/*.jsonl)]
+  T1 --> J
+  T2 --> J
+  T3 --> J
+  subgraph APP[Claudio.app]
+    D[SessionDiscovery<br/>FSEvents] --> R[SessionRegistry<br/>sessions, turns, liveness]
+    TL[TranscriptTailer x N] --> TA[TurnAssembler<br/>classify blocks] --> R
+    CS[ControlServer<br/>unix socket] --> R
+    R --> A[Arbiter<br/>active session, interrupts, catch-up]
+    A --> SP[SpeechPipeline<br/>render → segment → schedule]
+    SP --> B{{TTSBackend<br/>Edge · Apple · OpenAI}}
+    B --> PE[PlaybackEngine<br/>AVAudioEngine, gapless]
+    R --> UI[Menu bar · Popover · HUD · Settings]
+    A --> UI
+  end
+  J --> D
+  J --> TL
+  H[claudio hook] -. hook events .-> CS
+  CLI[claudio CLI] --> CS
+  T1 -. runs on each event .-> H
+    </pre>
+  </div>
+  <h3>The flow of one sentence</h3>
+  <ol>
+    <li><b>Discover.</b> FSEvents watches the transcript root. A new or changed <code>.jsonl</code> file maps to a session.</li>
+    <li><b>Tail.</b> One tailer per transcript reads from its saved offset to the end of file. It attaches at end of file on first sight, so history is never replayed.</li>
+    <li><b>Parse and assemble.</b> Each JSON line becomes a typed record. The turn assembler groups records into turns and emits speech items with a category: final answer, narration, tool call, tool result, thinking, or event.</li>
+    <li><b>Arbitrate.</b> The arbiter knows which session is active. It passes that session's items through the level filter and lets events from any session cut in briefly.</li>
+    <li><b>Render.</b> Markdown becomes speakable text: code blocks become "code block", tables become "Header: value" rows, paths become filenames, links become "link".</li>
+    <li><b>Segment and schedule.</b> Text is split into sentences. The scheduler keeps two segments synthesized ahead of the one playing.</li>
+    <li><b>Play.</b> PCM buffers are scheduled back to back on one audio player node. Cancel is a 15 ms volume ramp, then stop and reset.</li>
+  </ol>
+  <h3>Package layout</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Target</th><th>Kind</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>ClaudioControlProtocol</code></td><td>library</td><td>Codable wire types shared by app and CLI. Foundation only.</td></tr>
+      <tr><td><code>ClaudioCore</code></td><td>library</td><td>Transcript parsing, sessions, arbiter, rendering, scheduling, playback, settings. No UI imports. Fully unit tested.</td></tr>
+      <tr><td><code>ClaudioBackends</code></td><td>library</td><td>Edge, Apple and OpenAI backends plus the fallback wrapper and voice catalog.</td></tr>
+      <tr><td><code>ClaudioApp</code></td><td>executable</td><td>The menu bar app. SwiftUI and AppKit.</td></tr>
+      <tr><td><code>ClaudioCLI</code> → <code>claudio</code></td><td>executable</td><td>CLI and hook receiver. Links only the protocol library, so it starts in under 20 ms.</td></tr>
+    </tbody>
+  </table></div>
+  <p>External dependencies are limited to two: KeyboardShortcuts for global hotkeys and swift-argument-parser for the CLI. Everything else is Apple frameworks.</p>
+</section>
+
+<section id="behaviour">
+  <h2><span class="num">03</span>Behaviour contracts</h2>
+  <p>These are the rules a reviewer should hold the implementation to. They came out of a decision-by-decision interview and are recorded individually in the decision log.</p>
+
+  <h3>Categories and levels</h3>
+  <p>Every speakable thing has one category. Each session has one level. Levels are cumulative.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Level</th><th>Speaks</th><th>Default for</th></tr></thead>
+    <tbody>
+      <tr><td><b>Quiet</b></td><td>Events only: finished, needs permission, needs input</td><td>User choice</td></tr>
+      <tr><td><b>Answers</b></td><td>Events + final answers</td><td>Sessions that are not active</td></tr>
+      <tr><td><b>Narrate</b></td><td>Answers + narration ("I'll read the parser first") + tool call summaries ("Running: git status")</td><td>The active session</td></tr>
+    </tbody>
+  </table></div>
+  <p>Thinking and tool errors sit behind two global advanced toggles, both off. Subagents are not their own category: they appear as "Agent started" and "Agent finished" tool-call items on the parent session, and their internal narration is never spoken.</p>
+
+  <h3>Who gets the voice</h3>
+  <p>Exactly one session is active. Only its items are voiced. Events from any other session are announced between sentences and never cancel what is playing. Switching is manual: popover, HUD, hotkey, or CLI. Automatic focus-following is deferred because macOS gives no reliable way to know which Claude session's terminal is frontmost, especially inside Orca.</p>
+  <div class="diagram">
+    <p class="cap">Playback modes of the arbiter. Announcements from background sessions can be injected in any mode except paused.</p>
+    <pre class="mermaid">
+%%{init: {'theme':'neutral', 'themeVariables': {'fontFamily':'IBM Plex Sans, sans-serif','fontSize':'13px'}}}%%
+stateDiagram-v2
+  [*] --> idle
+  idle --> catchingUp: activate(session)
+  catchingUp --> live: plan drained or skip to live
+  live --> catchingUp: switch(other session)
+  live --> idle: deactivate
+  catchingUp --> idle: deactivate
+  live --> paused: pause
+  catchingUp --> paused: pause
+  paused --> live: resume
+    </pre>
+  </div>
+
+  <h3>Catch-up</h3>
+  <p>When you switch to a session with unread turns, Claudio says the session name and how many turns it is catching up on, then plays the final answer of each unread turn, oldest first, up to the last five. Narration and tool calls are never part of catch-up. It ends with "Live." if the session is mid-turn or "You're caught up." if it is idle. A skip-to-live control abandons the rest at any point.</p>
+  <div class="diagram">
+    <p class="cap">Switching from Vea to Yard while Yard has three unread turns.</p>
+    <pre class="mermaid">
+%%{init: {'theme':'neutral', 'themeVariables': {'fontFamily':'IBM Plex Sans, sans-serif','fontSize':'13px'}}}%%
+sequenceDiagram
+  actor U as You
+  participant A as Arbiter
+  participant P as SpeechPipeline
+  U->>A: switch to Yard (hotkey)
+  A->>P: cancelAll (15 ms fade)
+  A->>P: cue "Yard. Catching up on 3 turns."
+  A->>P: final answer, turn 1
+  A->>P: final answer, turn 2
+  U->>A: skip to live
+  A->>P: cancelAll
+  A->>P: cue "Live."
+  A->>P: Yard's current turn, at Yard's level
+    </pre>
+  </div>
+
+  <h3>What cancels and what queues</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Trigger</th><th>Active session</th><th>Background session</th></tr></thead>
+    <tbody>
+      <tr><td>You submit a prompt</td><td>Cancel everything queued, including catch-up</td><td>Nothing audible</td></tr>
+      <tr><td>New assistant block arrives mid-speech</td><td>Queue it, gapless</td><td>Accumulate</td></tr>
+      <tr><td>Turn completes</td><td>Nothing special</td><td>Chime + "Yard finished"; unread +1</td></tr>
+      <tr><td>Permission or input needed</td><td>Announce</td><td>Announce; HUD shows a one-key switch</td></tr>
+      <tr><td>You press Escape in Claude Code</td><td>Treated as a prompt: cancel</td><td>Nothing</td></tr>
+      <tr><td>You switch sessions</td><td>Cancel, then catch-up on the new one</td><td></td></tr>
+      <tr><td>You lower the level</td><td>Drop queued items that are no longer included</td><td></td></tr>
+      <tr><td>Backend fails</td><td>Fall back per sentence to the Apple voice; keep going</td><td></td></tr>
+    </tbody>
+  </table></div>
+  <h3>Hotkeys</h3>
+  <div class="pills">
+    <span class="pill on"><kbd>⌃⌥J</kbd> pause / resume</span>
+    <span class="pill on"><kbd>⌃⌥K</kbd> skip sentence</span>
+    <span class="pill on"><kbd>⌃⌥L</kbd> skip to live</span>
+    <span class="pill on"><kbd>⌃⌥;</kbd> cycle session</span>
+    <span class="pill on"><kbd>⌃⌥'</kbd> toggle level</span>
+    <span class="pill">mute (unbound)</span>
+    <span class="pill">show HUD (unbound)</span>
+  </div>
+  <p>All rebindable. Plain Cmd+J/K/L were rejected because a global hotkey steals them from the terminal and the browser.</p>
+</section>
+
+<section id="ingest">
+  <h2><span class="num">04</span>Reading the transcript</h2>
+  <p>Claude Code writes one JSON object per line to <code>~/.claude/projects/&lt;encoded-cwd&gt;/&lt;session-id&gt;.jsonl</code>. Subagent transcripts live beside it in a <code>subagents/</code> folder. The format is internal and can change in any release, so the parser is tolerant: every field is optional except <code>type</code>, unknown types are counted rather than rejected, and every classification rule has a fallback.</p>
+  <h3>What a turn looks like on disk</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Record</th><th>Meaning for Claudio</th></tr></thead>
+    <tbody>
+      <tr><td><code>user</code> with string content and <code>origin.kind: "human"</code></td><td>A turn starts. On the active session, this is the cancel trigger.</td></tr>
+      <tr><td><code>assistant</code>, one line per content block, sharing <code>message.id</code></td><td>Text, thinking or tool_use blocks. Each line carries the message's <code>stop_reason</code>.</td></tr>
+      <tr><td><code>user</code> with a <code>tool_result</code> block</td><td>Tool output. Spoken only when it is an error and the toggle is on.</td></tr>
+      <tr><td><code>system</code> with subtype <code>turn_duration</code></td><td>The turn ended.</td></tr>
+      <tr><td><code>ai-title</code></td><td>Claude's own title for the session. Used as the session name.</td></tr>
+      <tr><td><code>permission-mode</code>, <code>last-prompt</code>, <code>queue-operation</code>, <code>attachment</code>, <code>file-history-snapshot</code></td><td>Read for display or ignored.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Final answer or narration?</h3>
+  <p>The one classification that matters most: is this text block Claude's answer to you, or Claude talking before a tool call? Three signals, in priority order.</p>
+  <div class="diagram">
+    <p class="cap">Classification of an assistant text block.</p>
+    <pre class="mermaid">
+%%{init: {'theme':'neutral', 'themeVariables': {'fontFamily':'IBM Plex Sans, sans-serif','fontSize':'13px'}}}%%
+flowchart TD
+  A[assistant text block] --> B{stop_reason present?}
+  B -- end_turn --> F[finalAnswer]
+  B -- tool_use --> N[narration]
+  B -- absent --> P[hold as pending]
+  P --> C{next record for this session}
+  C -- tool_use with same message.id --> N
+  C -- different message, turn_duration,<br/>human prompt, or Stop hook --> F
+  C -- 1.5 s of silence --> F
+  F --> G{tool_use block follows<br/>in the same message?}
+  G -- yes --> N
+  G -- no --> F2[finalAnswer]
+    </pre>
+  </div>
+  <div class="callout">
+    <p><span class="k">Verified on Claude Code 2.1.290.</span> A live session was tailed with a 20 ms poller while generating multi-block messages. All per-block records of one message arrive in a single write after the message completes, each already carrying the final <code>stop_reason</code>. Across roughly 2,000 records there were 45 <code>end_turn</code> values and zero nulls. The primary path is the production path; the other two are guards. One consequence: the transcript exposes text at message granularity, so narration before a long tool call becomes readable only when that tool call finishes generating. The <code>MessageDisplay</code> hook is the documented way to get it earlier if that ever matters.</p>
+  </div>
+
+  <h3>Sessions, liveness, and names</h3>
+  <ul>
+    <li>A session appears on its first transcript write and leaves the list 24 hours after its last one. A lunch break never empties the list.</li>
+    <li><code>claude agents --json</code> is polled every 10 seconds to attach the process id and mark sessions whose process has exited as "ended". Ended sessions stay listed so you can still catch up.</li>
+    <li>Names come from Claude's AI-generated title, falling back to the folder name. Each session gets a stable colour.</li>
+    <li>Orca sessions are ordinary Claude sessions whose working directory is a worktree. Extra Orca accounts that pin <code>CLAUDE_CONFIG_DIR</code> are covered by a list of additional roots in Settings.</li>
+    <li>Session state, including unread turns and their final answer text, is cached in Application Support so catch-up survives an app restart.</li>
+  </ul>
+</section>
+
+<section id="hooks">
+  <h2><span class="num">05</span>Hooks and the <code>claudio</code> CLI</h2>
+  <p>The transcript alone is a complete source. Hooks are an opt-in upgrade that gives three things the transcript cannot: a cancel signal within tens of milliseconds, an authoritative final answer (the Stop hook carries it), and status events such as "needs permission". Enabling hooks writes seven entries into <code>~/.claude/settings.json</code>, each pointing at the <code>claudio hook</code> binary inside the app bundle.</p>
+  <div class="diagram">
+    <p class="cap">The cancel path with hooks installed. Typical total is about 35 ms; the budget is 100 ms.</p>
+    <pre class="mermaid">
+%%{init: {'theme':'neutral', 'themeVariables': {'fontFamily':'IBM Plex Sans, sans-serif','fontSize':'13px'}}}%%
+sequenceDiagram
+  participant CC as Claude Code
+  participant H as claudio hook
+  participant S as ControlServer
+  participant A as Arbiter
+  participant E as PlaybackEngine
+  CC->>H: UserPromptSubmit JSON on stdin
+  H->>S: one NDJSON line over the socket (~6 ms)
+  H-->>CC: exit 0 immediately
+  S->>A: turnStarted(active session)
+  A->>E: cancelAll
+  E->>E: ramp volume to 0 over 15 ms, stop, reset
+    </pre>
+  </div>
+  <h3>Installer rules</h3>
+  <ul>
+    <li>Read, parse, back up (last 10 copies kept), append our entries, write atomically, re-read to verify.</li>
+    <li>Never touch entries that are not ours. Orca writes its own managed hooks into the same file, and the user already has hooks there; both must survive install and uninstall byte for byte.</li>
+    <li>If the file does not parse, refuse and show the error. Never write to a broken file.</li>
+    <li>If the app has moved, the entries point at the wrong path. The app detects this on launch and offers a one-click repair.</li>
+    <li>All entries are <code>async: true</code>, so Claude Code never waits on Claudio. If the app is not running, the receiver exits 0 silently.</li>
+  </ul>
+  <h3>The CLI</h3>
+  <p>Because the socket exists for hooks anyway, a user CLI is nearly free. It also makes the app scriptable from inside a Claude session: a <code>/speak</code> skill wraps it.</p>
+  <pre class="code"><code>claudio status            # playback state, active session, backend, hooks
+claudio sessions          # table of live sessions with level and unread count
+claudio switch yard       # by id prefix, title, or path; no argument = this session
+claudio level narrate     # set this session's level (uses CLAUDE_CODE_SESSION_ID)
+claudio pause | resume | skip | live | mute | unmute
+claudio say "build finished"
+claudio hooks install | uninstall | status
+claudio doctor            # 12 health checks: socket, roots, claude binary, hooks, Edge, voices, audio device
+claudio render notes.md   # see exactly what the renderer would speak
+claudio tail              # watch speech items as they are classified</code></pre>
+</section>
+
+<section id="speech">
+  <h2><span class="num">06</span>Speech pipeline</h2>
+  <p>This is where the prototype's gaps and missing cancel are fixed. Backends return raw PCM buffers, not audio files. One <code>AVAudioPlayerNode</code> plays every buffer back to back, so a sentence boundary is just a marker and costs nothing. The scheduler keeps two sentences synthesized ahead of the one playing, which hides the network round trip behind short sentences.</p>
+  <div class="diagram">
+    <p class="cap">From a speech item to the speaker.</p>
+    <pre class="mermaid">
+%%{init: {'theme':'neutral', 'themeVariables': {'fontFamily':'IBM Plex Sans, sans-serif','fontSize':'13px'}}}%%
+flowchart LR
+  I[SpeechItem<br/>markdown] --> F[ContentFilter<br/>level × category]
+  F --> R[SpeechTextRenderer<br/>18 rewrite rules]
+  R --> S[SentenceSegmenter<br/>NLTokenizer, merge &lt;60 chars,<br/>split &gt;1200 bytes]
+  S --> Q[SynthesisScheduler<br/>lookahead 2]
+  Q --> B1[chunk k: playing]
+  Q --> B2[chunk k+1: ready]
+  Q --> B3[chunk k+2: synthesizing]
+  B1 --> P[PlaybackEngine<br/>one player node, gapless]
+  B2 --> P
+  B3 --> P
+    </pre>
+  </div>
+  <h3>How markdown is spoken</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Element</th><th>Spoken as</th></tr></thead>
+    <tbody>
+      <tr><td>Fenced code block</td><td>"swift code block." as its own sentence. Never read.</td></tr>
+      <tr><td>Table</td><td>Every body row as "Header: value, Header: value." Each row is its own sentence, so skip jumps to the next row.</td></tr>
+      <tr><td>Inline code</td><td>Cleaned: <code>snake_case</code> → "snake case", <code>camelCase</code> → "camel case", <code>Parser.swift</code> → "Parser dot swift"</td></tr>
+      <tr><td>File path</td><td>Last component only</td></tr>
+      <tr><td>URL</td><td>"link"</td></tr>
+      <tr><td>Headings, bullets, numbered lists</td><td>Markers stripped; each item its own sentence with a pause</td></tr>
+      <tr><td>Bold, italic, strikethrough, emoji, HTML tags, ANSI codes</td><td>Removed</td></tr>
+      <tr><td><code>-></code>, <code>&amp;</code>, <code>--flag</code></td><td>"to", "and", "flag"</td></tr>
+      <tr><td>Long answers</td><td>Read in full. No length cap, no LLM summarization. Skip controls cover impatience.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Cancel without a click</h3>
+  <p>Stopping audio mid-sample produces an audible click. Claudio ramps the player node's volume to zero over 15 ms in 1 ms steps, then stops and resets the node, restores the volume, and leaves it playing silence so the next buffer starts with no further latency. A test renders a sine wave through an offline engine, cancels at a random phase, and asserts no sample-to-sample jump above a threshold. It runs in CI with no audio device.</p>
+  <h3>Captions that follow the word</h3>
+  <p>edge-tts streams word boundary metadata alongside the audio. The HUD's caption highlights the word being spoken, mapped from audio offset to playback position. Apple's synthesizer reports word ranges through its delegate. OpenAI reports nothing, so words are spread proportionally across the sentence's duration.</p>
+</section>
+
+<section id="backends">
+  <h2><span class="num">07</span>Voices</h2>
+  <p>Backends implement one protocol: take a sentence, a voice and a rate, return a stream of PCM buffers and optional word boundaries, and stop promptly when cancelled. Three ship in v1.</p>
+  <div class="grid2">
+    <div class="card">
+      <span class="tag">default · network</span>
+      <h4>Edge</h4>
+      <p>A clean-room Swift port of the edge-tts protocol: Microsoft's free neural voices over a WebSocket. Supports rate and word boundaries. The protocol is unofficial and has broken before, so the constants live in one file and failure degrades gracefully.</p>
+    </div>
+    <div class="card">
+      <span class="tag">fallback · offline · always present</span>
+      <h4>Apple</h4>
+      <p><code>AVSpeechSynthesizer</code> writing PCM buffers. Standard voices are mediocre; Premium voices are decent after a one-time download in System Settings, and the app shows a hint until one is installed. Siri voices are not available to third-party apps.</p>
+    </div>
+    <div class="card">
+      <span class="tag">optional · API key · paid</span>
+      <h4>OpenAI</h4>
+      <p><code>gpt-4o-mini-tts</code> streaming raw PCM over HTTP. About 1.5 cents per minute of audio. Key stored in the Keychain. No word boundaries.</p>
+    </div>
+    <div class="card">
+      <span class="tag">later · local</span>
+      <h4>Kokoro and friends</h4>
+      <p>Local neural models via a sidecar process fit the protocol but are deferred. The bundling story for a Python runtime and model download is more work than the whole v1 UI.</p>
+    </div>
+  </div>
+  <div class="diagram">
+    <p class="cap">Per-sentence fallback. The primary backend is retried on the very next sentence.</p>
+    <pre class="mermaid">
+%%{init: {'theme':'neutral', 'themeVariables': {'fontFamily':'IBM Plex Sans, sans-serif','fontSize':'13px'}}}%%
+flowchart LR
+  S[sentence] --> E[Edge backend]
+  E -- first audio within 3 s --> OK[play Edge audio]
+  E -- error or timeout --> AP[Apple backend<br/>paired fallback voice]
+  AP --> OK2[play Apple audio]
+  AP -. once per hour .-> N[HUD notice]
+  OK2 -. next sentence .-> E
+    </pre>
+  </div>
+  <p>The fallback is not marked with a sound. The voice change is obvious on its own, and a cue on every sentence during an outage would be worse than the outage.</p>
+</section>
+
+<section id="ui">
+  <h2><span class="num">08</span>Interface</h2>
+  <p>Four surfaces, all native. The menu bar icon shows state at a glance. The popover is the control room. The HUD is a floating mini-player that never steals focus from your terminal. The settings window holds everything else.</p>
+  <div class="mock" aria-label="Mockups of the HUD and the popover">
+    <div>
+      <span class="label">Floating HUD, captions expanded</span>
+      <div class="hud">
+        <div class="row"><span class="bar"></span><span class="title">Claude-speak redesign</span><span class="state">speaking · 3/7</span></div>
+        <div class="prog"><i></i></div>
+        <div class="ctl"><span>⏸</span><span>⏭</span><span>live</span><span>⌄</span></div>
+        <div class="prompt"><span>Yard needs permission</span><span>Switch ↩</span></div>
+        <div class="cap">Backends return raw PCM buffers, <mark>not</mark> audio files, so a sentence boundary is just a marker.</div>
+      </div>
+    </div>
+    <div>
+      <span class="label">Popover from the menu bar icon</span>
+      <div class="pop">
+        <div class="head"><span>⏸ Pause</span><span>⏭ Skip</span><span>Live</span><span>🔇</span></div>
+        <div class="sess"><span class="dot" style="background:#c86b2b"></span><div><div class="t">Claude-speak redesign <span class="s">· active</span></div><div class="s">~/dev/claudio · busy</div></div><span class="seg"><span>Quiet</span><span>Answers</span><span class="on">Narrate</span></span></div>
+        <div class="sess"><span class="dot" style="background:#2b6cc8"></span><div><div class="t">Yard migration <span class="unread">2</span></div><div class="s">~/dev/yard · waiting for permission</div></div><span class="seg"><span>Quiet</span><span class="on">Answers</span><span>Narrate</span></span></div>
+        <div class="sess"><span class="dot" style="background:#7a3fb5"></span><div><div class="t">Vea auth refactor</div><div class="s">~/dev/vea · idle</div></div><span class="seg"><span class="on">Quiet</span><span>Answers</span><span>Narrate</span></span></div>
+        <div class="foot"><span>7 hooks installed, pointing at this app</span><span>⚙ 1.0.0</span></div>
+      </div>
+    </div>
+  </div>
+  <ul>
+    <li><b>HUD</b> appears on first audio and hides four seconds after the queue drains unless pinned. Draggable; position remembered. 320 pt wide. Captions are a collapsible section, closed by default.</li>
+    <li><b>Popover</b> sorts active first, then waiting, busy, idle, ended. The level control is a three-way segmented control on every row. Click a row to switch.</li>
+    <li><b>Settings</b> tabs: General, Voice, OpenAI, Levels, Hotkeys, Sessions, Integration, Advanced. The Integration tab holds the hooks toggle with a status line, the CLI symlink, and the <code>/speak</code> skill installer.</li>
+    <li><b>Login item</b> via <code>SMAppService</code>. No Dock icon.</li>
+  </ul>
+</section>
+
+<section id="config">
+  <h2><span class="num">09</span>Settings and footprint</h2>
+  <p>Nothing requires a restart. App settings live in UserDefaults and are observed by the core actors; a change applies on the next sentence. Per-session level is ephemeral by session id, with a per-project default stored in a small JSON file so a project you always monitor opens at Narrate. Worktrees inherit their repository's default through nearest-ancestor matching.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Location</th><th>What</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><code>/Applications/Claudio.app</code></td><td>App, CLI, hook receiver, chimes</td><td>Always</td></tr>
+      <tr><td><code>~/Library/Application Support/Claudio/</code></td><td>Socket, <code>projects.json</code>, <code>sessions.json</code>, voice cache, settings backups</td><td>Always</td></tr>
+      <tr><td><code>~/Library/Preferences/com.jdforsythe.claudio.plist</code></td><td>Settings</td><td>Always</td></tr>
+      <tr><td>Keychain, service <code>com.jdforsythe.claudio</code></td><td>OpenAI key</td><td>Only if you add one</td></tr>
+      <tr><td><code>~/.claude/settings.json</code></td><td>Seven hook entries</td><td>Only when hooks are enabled</td></tr>
+      <tr><td><code>/usr/local/bin/claudio</code></td><td>Symlink</td><td>Only on request</td></tr>
+      <tr><td><code>~/.claude/skills/speak/</code></td><td>The <code>/speak</code> skill</td><td>Only on request</td></tr>
+    </tbody>
+  </table></div>
+  <p>Uninstall removes exactly what it created. Nothing is ever written under <code>~/.claude/projects</code>.</p>
+</section>
+
+<section id="quality">
+  <h2><span class="num">10</span>Testing and build</h2>
+  <h3>Testing</h3>
+  <ul>
+    <li><b>Fixtures.</b> Twenty scrubbed real transcripts, each with the expected sequence of events. Text is replaced by same-length filler with markdown structure preserved; structural fields stay verbatim. Two fixtures probe whether the installed Claude Code populates <code>stop_reason</code>, so a format change fails a named test instead of silently misclassifying.</li>
+    <li><b>Core</b> is pure Swift with an injectable clock and a recording playback sink, so every latency and ordering claim is asserted without audio hardware. Target coverage: 90 % lines.</li>
+    <li><b>Backends</b> are tested against a local mock WebSocket server that speaks the Edge protocol byte for byte, including the time-based anti-bot token. One network-gated live smoke test runs only when explicitly enabled.</li>
+    <li><b>Integration</b> tests replay fixtures through the whole pipeline and map one to one onto the twelve user stories in the PRD.</li>
+    <li><b>Manual QA</b> checklist per milestone: two terminals plus Orca, headphone unplug, sleep and wake, Orca hooks present, Premium voice absent and present, network offline.</li>
+  </ul>
+  <h3>Build without Xcode</h3>
+  <p>The developer machine has Swift 6.3 through the Command Line Tools and no Xcode. SwiftPM builds both executables; a short script assembles <code>Claudio.app</code> with its Info.plist, icon, sounds and resource bundle, and signs it ad hoc. Developer ID signing and notarization are documented as the release path. A pre-commit hook runs swift-format and SwiftLint. GitHub Actions on a macOS runner lints, tests with coverage, bundles the app, and on a version tag publishes a release with the zip, its checksum and the dSYM.</p>
+  <pre class="code"><code>make lint test app      # format check, lint, unit + integration tests, bundle Claudio.app
+make install            # copy to /Applications, relaunch
+make logs               # stream the unified log for subsystem com.jdforsythe.claudio
+claudio doctor          # health checks after install</code></pre>
+</section>
+
+<section id="milestones">
+  <h2><span class="num">11</span>Milestones</h2>
+  <p>Riskiest unknowns first. Each milestone leaves something usable, and nobody moves to the next until its acceptance criteria pass.</p>
+  <div class="timeline">
+    <div class="ms"><div class="n">0<small>½ day</small></div><div><h4>Repository scaffold</h4><p>Package, Makefile, lint configs, CI, empty targets that compile, bundling script.</p><div class="acc">Accept: <code>make lint test app</code> green locally and in CI with Command Line Tools only.</div></div></div>
+    <div class="ms"><div class="n">1<small>3–4 days</small></div><div><h4>Headless core pipeline</h4><p>Tailer, parser, turn assembler, renderer, segmenter, scheduler, playback engine, Edge and Apple backends, fallback. A debug subcommand runs it against one live session.</p><div class="acc">Accept: no audible gaps, first audio under 1.5 s, cancel under 600 ms from the transcript alone, network pull degrades to Apple without silence, click test passes.</div></div></div>
+    <div class="ms"><div class="n">2<small>4–5 days</small></div><div><h4>Menu bar app and multi-session arbitration</h4><p>Discovery, liveness, arbiter, catch-up, settings, popover, hotkeys, login item, chimes.</p><div class="acc">Accept: three live sessions listed within 1 s, switching plays the digest, every setting applies live, state survives relaunch, idle CPU under 0.5 %.</div></div></div>
+    <div class="ms"><div class="n">3<small>2–3 days</small></div><div><h4>HUD and captions</h4><p>Floating panel, show and hide policy, drag, background prompts with one-key switch, word-highlighted captions.</p><div class="acc">Accept: highlight within 100 ms of the spoken word on Edge, HUD never steals keyboard focus from the terminal.</div></div></div>
+    <div class="ms"><div class="n">4<small>2–3 days</small></div><div><h4>Hooks, control socket and CLI</h4><p>Socket server, hook receiver, installer with backup and repair, full CLI, doctor, render, tail, <code>/speak</code> skill.</p><div class="acc">Accept: cancel under 100 ms, settings.json byte-identical outside our entries after install and uninstall with Orca's hooks present, receiver under 20 ms.</div></div></div>
+    <div class="ms"><div class="n">5<small>2 days</small></div><div><h4>OpenAI, polish and release</h4><p>OpenAI backend, voice previews, icon, release workflow, Orca verification pass.</p><div class="acc">Accept: all twelve user stories pass, tagged push produces a release, fresh machine speaks within 30 s of first launch.</div></div></div>
+  </div>
+  <p>Explicitly deferred: focus-following, local neural backends, LLM condensation, voice input, per-subagent voices, Linux and Windows.</p>
+</section>
+
+<section id="decisions">
+  <h2><span class="num">12</span>Decisions</h2>
+  <p>Every choice and what it beat. The full log with dates is <code>docs/13-decisions.md</code>. A decision is changed only by adding a superseding entry.</p>
+  <details class="dec"><summary><span class="id">D-01</span>macOS only, personal-first, publishable later</summary><div class="body"><p>Beat cross-platform via Electron or Tauri. Every quality problem lives where native audio and window APIs help; a web stack removes those tools.</p></div></details>
+  <details class="dec"><summary><span class="id">D-02</span>Swift and SwiftUI with SwiftPM, no Xcode</summary><div class="body"><p>Beat Tauri, Electron, Python tray libraries and Go. Best HUD story, trivial login item, first-class AVAudioEngine, nothing to bundle. Tauri was runner-up but routes audio through Rust or WebAudio and has focus regressions for non-activating panels.</p></div></details>
+  <details class="dec"><summary><span class="id">D-03</span>Transcript tail plus optional hooks</summary><div class="body"><p>Beat hooks-only and tail-only. The transcript is asynchronous and unstable, so it cannot carry control signals alone; hooks fire per message, so they cannot carry streamed text alone. Writing hook entries to settings.json was accepted; the objection was to scripts dumped in <code>~/.claude/tools</code>.</p></div></details>
+  <details class="dec"><summary><span class="id">D-04</span>Three levels, not six checkboxes</summary><div class="body"><p>The real modes are "tell me when it's done" and "let me monitor it". Three levels fit a segmented control.</p></div></details>
+  <details class="dec"><summary><span class="id">D-05</span>One active session plus event interrupts</summary><div class="body"><p>Beat auto-follow and interleaving. One voice cannot serve two narrations; interleaving drowns the one you care about; focus has no official API.</p></div></details>
+  <details class="dec"><summary><span class="id">D-06</span>Catch-up is a digest of final answers, last five turns</summary><div class="body"><p>Beat resume-live-only, full backlog, and asking every time. Final answers carry the information; narration is only useful live.</p></div></details>
+  <details class="dec"><summary><span class="id">D-07</span>No LLM condensation</summary><div class="body"><p>User decision. Adds a network dependency, cost and a second voice of truth. Skip controls cover impatience.</p></div></details>
+  <details class="dec"><summary><span class="id">D-08</span>Cancel semantics and the 15 ms fade</summary><div class="body"><p>A prompt in the active session is an unambiguous "I've read it". Events never cancel. The fade avoids clicks.</p></div></details>
+  <details class="dec"><summary><span class="id">D-09</span>Ctrl+Option hotkeys, rebindable</summary><div class="body"><p>Beat plain Cmd+J/K/L, which a global hotkey would steal from the terminal and browser.</p></div></details>
+  <details class="dec"><summary><span class="id">D-10</span>Native edge-tts port as default, Apple as fallback, no Python</summary><div class="body"><p>Beat bundled Python, Kokoro sidecar, OpenAI default, Apple Premium default. The user's preference is "voices much better than Mac" for free. Fallback is mandatory because the protocol is unofficial.</p></div></details>
+  <details class="dec"><summary><span class="id">D-11</span>PCM buffers, not audio files</summary><div class="body"><p>Files reintroduce per-clip startup, gaps and no instant stop. One player node gives sub-5 ms gaps and immediate stop.</p></div></details>
+  <details class="dec"><summary><span class="id">D-12</span>Lookahead of two sentences</summary><div class="body"><p>One cannot hide a 300–800 ms round trip behind a short sentence; three wastes synthesis on cancel.</p></div></details>
+  <details class="dec"><summary><span class="id">D-13</span>Tables read in full, rows are skip units</summary><div class="body"><p>User decision over "header row only". Tables usually carry the result.</p></div></details>
+  <details class="dec"><summary><span class="id">D-14</span>Word-level caption highlighting in v1</summary><div class="body"><p>User decision. The data is already in the Edge stream.</p></div></details>
+  <details class="dec"><summary><span class="id">D-15</span>Fallback is not audibly marked</summary><div class="body"><p>The voice change is obvious. A cue per sentence during an outage would be worse than the outage.</p></div></details>
+  <details class="dec"><summary><span class="id">D-16</span>24-hour session expiry; process state shown separately</summary><div class="body"><p>User decision over 30 minutes. A lunch break must not empty the list. Dead processes mark "ended" rather than removing.</p></div></details>
+  <details class="dec"><summary><span class="id">D-17</span>Focus-following deferred</summary><div class="body"><p>No official API; proxies are unreliable in Orca and Claude Desktop. Revisit after real use.</p></div></details>
+  <details class="dec"><summary><span class="id">D-18</span>UserDefaults and Application Support JSON; everything live</summary><div class="body"><p>Beat flag files under <code>~/.claude/projects</code>. The prototype's rate flag needed a daemon restart.</p></div></details>
+  <details class="dec"><summary><span class="id">D-19</span>Bundled CLI doubles as the hook receiver</summary><div class="body"><p>The socket is needed for hooks anyway. A shell script would need jq or nc and could not meet 20 ms reliably.</p></div></details>
+  <details class="dec"><summary><span class="id">D-20</span>Hooks merged into settings.json, identified by command path</summary><div class="body"><p>Orca and the user's hooks live in the same file. Back up before every write; refuse malformed input.</p></div></details>
+  <details class="dec"><summary><span class="id">D-21</span>Core / Backends / App / CLI targets</summary><div class="body"><p>The pipeline must be testable without audio hardware; the CLI must not link AVFoundation or AppKit.</p></div></details>
+  <details class="dec"><summary><span class="id">D-22</span>Bundle id <code>com.jdforsythe.claudio</code></summary><div class="body"><p>Also the UserDefaults suite, Keychain service and logging subsystem.</p></div></details>
+  <details class="dec"><summary><span class="id">D-23</span>Documentation as a numbered set, not one file</summary><div class="body"><p>User decision. Each milestone maps to a small set of documents.</p></div></details>
+  <details class="dec"><summary><span class="id">D-24</span>macOS 15 minimum, Swift 6 strict concurrency, swift-format and SwiftLint, GitHub Actions</summary><div class="body"><p>Keeps modern APIs available while allowing users one release behind. Strict concurrency catches the data races an audio pipeline with actors would otherwise hide.</p></div></details>
+  <details class="dec"><summary><span class="id">D-25</span>Final-answer classification: stop_reason, then turn end, then block adjacency</summary><div class="body"><p>Layered so it is correct whether or not stop_reason is present while a message streams.</p></div></details>
+  <details class="dec"><summary><span class="id">D-26</span><code>claude agents --json</code> is the process-liveness source</summary><div class="body"><p>Verified locally. Command failure means "unknown", never "ended".</p></div></details>
+  <details class="dec"><summary><span class="id">D-27</span>Verified: records are written per message with stop_reason always populated</summary><div class="body"><p>Measured on 2.1.290 by tailing a live session. The primary classifier is the production path; the transcript's text latency is bounded by message completion.</p></div></details>
+</section>
+
+<section id="risks">
+  <h2><span class="num">13</span>Risks a reviewer should weigh</h2>
+  <div class="callout warn">
+    <p><span class="k">The transcript format is explicitly unstable.</span> Anthropic says it can change in any release. Mitigation: a tolerant parser, layered classification, probe fixtures that fail loudly, the Stop hook as the authority when hooks are on, and a doctor warning when the unknown-record ratio climbs.</p>
+  </div>
+  <div class="callout warn">
+    <p><span class="k">edge-tts is unofficial.</span> Microsoft broke the handshake in December 2025 and the Python maintainer patched it. Mitigation: per-sentence fallback to Apple, constants in one file, a mock-server test that pins the protocol, and a live smoke test that detects drift.</p>
+  </div>
+  <div class="callout warn">
+    <p><span class="k">Hooks share a file with Orca.</span> Orca rewrites its managed entries in the same settings.json. Mitigation: merge never clobber, backups, verify after write, and a test that asserts byte-identity outside our entries.</p>
+  </div>
+  <div class="callout warn">
+    <p><span class="k">Text arrives at message granularity.</span> Measured, not assumed. Narration before a long tool call is spoken only when that call finishes generating. Accepted for v1; <code>MessageDisplay</code> is the documented path to earlier text.</p>
+  </div>
+  <div class="callout">
+    <p><span class="k">Unverified and flagged in the spec.</span> Whether Apple's synthesizer reports word ranges while writing to buffers rather than speaking live; whether Orca's structured chat mode writes transcripts to the same path. Both have fallbacks and named tests.</p>
+  </div>
+  <p>The full specification, with Swift signatures, wire formats, configuration keys, test catalogues and runbooks, is in the repository's <code>docs/</code> folder, starting at <code>00-index.md</code>.</p>
+</section>
+</main>
+</div>
+
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('#railnav a'));
+  var top = document.getElementById('toplinks');
+  links.forEach(function (a) {
+    var c = document.createElement('a'); c.href = a.getAttribute('href'); c.textContent = a.textContent.replace(/^\d+/, '').trim(); top.appendChild(c);
+  });
+  var all = links.concat(Array.prototype.slice.call(top.querySelectorAll('a')));
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main section'));
+  function setActive(id) {
+    all.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + id); });
+  }
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) setActive(e.target.id); });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { obs.observe(s); });
+  }
+  var h = location.hash.replace('#', '');
+  if (h && document.getElementById(h)) setActive(h); else setActive('why');
+})();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+<script>if (window.mermaid) { mermaid.initialize({ startOnLoad: true, securityLevel: "loose" }); }</script>
+</body>
+</html>
