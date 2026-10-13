@@ -101,6 +101,9 @@ final class AppControlHost: ControlHostDelegate {
         default: "warn"
         }
         checks.append(DoctorCheck(name: "Login item", state: loginState, detail: "status \(status.rawValue), setting \(wantLogin)"))
+        let instances = NSRunningApplication.runningApplications(withBundleIdentifier: "com.jdforsythe.claudio").count
+        checks.append(DoctorCheck(name: "Instances", state: instances <= 1 ? "pass" : "fail",
+                                  detail: instances <= 1 ? "one Claudio process" : "\(instances) Claudio processes running; quit the extras"))
         let hasOutput = Self.defaultOutputDeviceExists()
         checks.append(DoctorCheck(name: "Audio output", state: hasOutput ? "pass" : "fail", detail: hasOutput ? "default output device present" : "no output device"))
         return checks

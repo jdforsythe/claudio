@@ -59,6 +59,10 @@ public actor TurnAssembler {
     private var hookFinalAnswers: [TurnID: (text: String, at: Date)] = [:]
     private var transcriptFinalAnswers: [TurnID: [String]] = [:]
     private var orphanCounter = 0
+    private var turnAliases: [TurnID: TurnID] = [:]
+    private var recentHookEnd: (turn: TurnID, at: Date)?
+    private var openTurnSource: String?
+    public static let crossSourceAliasWindow: TimeInterval = 3
     private let broadcast = Broadcast<[TurnEvent]>()
     public private(set) var subagentActivity = 0
 
@@ -253,14 +257,14 @@ public actor TurnAssembler {
             events.append(contentsOf: startTurn(turnID, promptText: event.string("prompt_text") ?? event.string("prompt") ?? "",
                                                 at: now, source: "hook"))
         case "Stop":
-            let turnID = event.promptID ?? openTurn ?? lastEndedTurn ?? "hook-stop"
+            let turnID = openTurn ?? event.promptID ?? lastEndedTurn ?? "hook-stop"
             if let message = event.string("last_assistant_message"), !message.isEmpty {
                 events.append(contentsOf: hookFinalAnswer(message, turnID: turnID, at: now))
             }
             events.append(contentsOf: flushPending(as: .finalAnswer, at: now))
             events.append(contentsOf: endTurn(turnID, at: now, reason: .hookStop, source: "hook"))
         case "StopFailure":
-            let turnID = event.promptID ?? openTurn ?? "hook-stop-failure"
+            let turnID = openTurn ?? event.promptID ?? "hook-stop-failure"
             events.append(contentsOf: endTurn(turnID, at: now, reason: .hookStopFailure, source: "hook"))
             let reason = Self.humanise(errorType: event.string("error_type") ?? "error")
             events.append(.item(eventItem("\(title) hit an error: \(reason).", at: now)))
@@ -283,8 +287,8 @@ public actor TurnAssembler {
                 events.append(.statusChanged(.waiting))
                 events.append(.item(eventItem("\(title) needs input.", at: now)))
             case "agent_completed":
-                if openTurn != nil {
-                    events.append(.item(eventItem("\(title) finished.", at: now)))
+                if let open = openTurn {
+                    events.append(contentsOf: endTurn(open, at: now, reason: .hookStop, source: "hook:agent_completed"))
                 }
             default:
                 break
@@ -346,6 +350,13 @@ public actor TurnAssembler {
             log.debug("dropped duplicate turn start for \(turnID.prefix(8)) from \(source)")
             return []
         }
+        if let open = openTurn, open != turnID, let started = turnStartTimes[open], openTurnSource != source,
+           arrival.timeIntervalSince(started) < Self.crossSourceAliasWindow {
+            log.debug("aliasing turn start \(turnID.prefix(8)) from \(source) to open turn \(open.prefix(8))")
+            turnAliases[turnID] = open
+            turnStartTimes[turnID] = arrival
+            return []
+        }
         var events: [TurnEvent] = []
         events.append(contentsOf: flushPending(as: .finalAnswer, at: at))
         if let open = openTurn, open != turnID {
@@ -353,6 +364,8 @@ public actor TurnAssembler {
         }
         turnStartTimes[turnID] = arrival
         openTurn = turnID
+        openTurnSource = source
+        recentHookEnd = nil
         currentMessageID = nil
         log.info("\(sessionID.prefix(8)) turnStarted \(turnID.prefix(8)) via \(source)")
         events.append(.turnStarted(turnID, promptText: promptText, at: at))
@@ -360,7 +373,8 @@ public actor TurnAssembler {
         return events
     }
 
-    private func endTurn(_ turnID: TurnID, at: Date, reason: TurnEndReason, source: String) -> [TurnEvent] {
+    private func endTurn(_ requestedTurnID: TurnID, at: Date, reason: TurnEndReason, source: String) -> [TurnEvent] {
+        let turnID = turnAliases[requestedTurnID] ?? requestedTurnID
         let arrival = clock.now
         if let ended = turnEndTimes[turnID], arrival.timeIntervalSince(ended) < Self.endDedupWindow {
             log.debug("dropped duplicate turn end for \(turnID.prefix(8)) from \(source)")
@@ -370,6 +384,7 @@ public actor TurnAssembler {
         turnEndTimes[turnID] = arrival
         if openTurn == turnID { openTurn = nil }
         lastEndedTurn = turnID
+        if reason == .hookStop { recentHookEnd = (turnID, arrival) }
         currentMessageID = nil
         log.info("\(sessionID.prefix(8)) turnEnded \(turnID.prefix(8)) reason=\(reason.rawValue) via \(source)")
         var events: [TurnEvent] = [.turnEnded(turnID, at: at, reason: reason)]
@@ -379,6 +394,7 @@ public actor TurnAssembler {
 
     private func ensureOpenTurn(messageID: String, at: Date) -> [TurnEvent] {
         guard openTurn == nil else { return [] }
+        if recentHookTurn != nil { return [] }
         orphanCounter += 1
         let id = "orphan-\(messageID)"
         openTurn = id
@@ -393,7 +409,7 @@ public actor TurnAssembler {
     }
 
     private func emitFinal(text: String, record: TranscriptRecord, at: Date) -> [TurnEvent] {
-        let turnID = openTurn ?? "unknown"
+        let turnID = openTurn ?? recentHookTurn ?? "unknown"
         if let hook = hookFinalAnswers[turnID], clock.now.timeIntervalSince(hook.at) < Self.hookAnswerWindow {
             log.debug("dropped transcript finalAnswer after hook text for \(turnID.prefix(8))")
             return []
@@ -456,8 +472,14 @@ public actor TurnAssembler {
     }
 
     private func makeItem(_ category: ContentCategory, text: String, record: TranscriptRecord, at: Date) -> SpeechItem {
-        SpeechItem(sessionID: sessionID, turnID: openTurn, category: category, text: text,
+        SpeechItem(sessionID: sessionID, turnID: openTurn ?? recentHookTurn, category: category, text: text,
                    sourceUUID: record.envelope.uuid, timestamp: at)
+    }
+
+    /// The turn a hook closed within the last 30 s, to which lagging transcript records still belong.
+    private var recentHookTurn: TurnID? {
+        guard let r = recentHookEnd, clock.now.timeIntervalSince(r.at) < Self.hookAnswerWindow else { return nil }
+        return r.turn
     }
 
     private func eventItem(_ text: String, at: Date) -> SpeechItem {

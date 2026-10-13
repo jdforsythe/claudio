@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3 — 2026-10-13
+
+- Fix a background session being announced as finished twice when the `agent_completed` notification arrived before the `Stop` hook; turn end is now the single announcer and `agent_completed` simply ends the turn.
+- Hook `Stop`/`StopFailure` refer to the open turn even when their prompt id differs from the transcript's; a hook and transcript start within 3 s of each other are one turn.
+- A final answer arriving from the transcript after the `Stop` hook joins that turn and is deduplicated instead of being spoken again.
+- The single-instance check treats any accepted socket connection as a running instance; `claudio doctor` reports the number of Claudio processes.
+
 ## 0.1.2 — 2026-10-13
 
 - Fix a crash when opening Settings → Hotkeys (and thereafter any Settings open) on machines other than the build machine: the vendored KeyboardShortcuts library resolved its localized strings through the same generated `Bundle.module` accessor. The library now finds its resource bundle in the app and the bundle ships inside `Claudio.app`.

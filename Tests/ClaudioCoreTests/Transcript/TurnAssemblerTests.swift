@@ -211,6 +211,44 @@ final class TurnAssemblerTests: XCTestCase {
         XCTAssertTrue(c.isEmpty)
     }
 
+    func test_TurnAssembler_agentCompletedBeforeStop_endsTurnOnce_noFinishedItem() async {
+        _ = await ingest(RecordBuilder.humanPrompt("hi", promptID: "p1"))
+        let a = await assembler.ingestHook(hook("Notification", ["notification_type": "agent_completed"]), title: "Yard")
+        XCTAssertEqual(a.filter { if case .turnEnded("p1", _, _) = $0 { true } else { false } }.count, 1)
+        XCTAssertTrue(items(a).isEmpty, "the Arbiter announces; the assembler must not emit a finished item")
+        let b = await assembler.ingestHook(hook("Stop", ["prompt_id": "p1"]), title: "Yard")
+        XCTAssertFalse(b.contains { if case .turnEnded = $0 { true } else { false } })
+        let c = await ingest(RecordBuilder.turnDuration())
+        XCTAssertFalse(c.contains { if case .turnEnded = $0 { true } else { false } })
+    }
+
+    func test_TurnAssembler_stopAfterAgentCompleted_withMismatchedPromptID_endsOnce() async {
+        _ = await ingest(RecordBuilder.humanPrompt("hi", promptID: "p1"))
+        let a = await assembler.ingestHook(hook("Stop", ["prompt_id": "other-id"]), title: "Yard")
+        XCTAssertEqual(a.filter { if case .turnEnded("p1", _, .hookStop) = $0 { true } else { false } }.count, 1)
+        let b = await ingest(RecordBuilder.turnDuration())
+        XCTAssertFalse(b.contains { if case .turnEnded = $0 { true } else { false } })
+    }
+
+    func test_TurnAssembler_hookAndTranscriptStartWithDifferentIDs_withinWindow_areOneTurn() async {
+        let a = await assembler.ingestHook(hook("UserPromptSubmit", ["prompt_id": "hook-id", "prompt_text": "hi"]), title: "T")
+        XCTAssertTrue(a.contains { if case .turnStarted("hook-id", _, _) = $0 { true } else { false } })
+        let b = await ingest(RecordBuilder.humanPrompt("hi", promptID: "transcript-id"))
+        XCTAssertFalse(b.contains { if case .turnStarted = $0 { true } else { false } })
+        XCTAssertFalse(b.contains { if case .turnEnded = $0 { true } else { false } }, "no spurious interruption cancel")
+        let c = await ingest(RecordBuilder.text("Answer.", messageID: "m1"))
+        XCTAssertEqual(items(c).first?.turnID, "hook-id")
+    }
+
+    func test_TurnAssembler_transcriptFinalAfterHookStop_joinsThatTurnAndIsDeduped() async {
+        _ = await ingest(RecordBuilder.humanPrompt("hi", promptID: "p1"))
+        let stop = await assembler.ingestHook(hook("Stop", ["prompt_id": "p1", "last_assistant_message": "The answer."]), title: "T")
+        XCTAssertEqual(items(stop).map(\.category), [.finalAnswer])
+        let late = await ingest(RecordBuilder.text("The answer.", messageID: "m1"))
+        XCTAssertTrue(items(late).isEmpty, "late transcript copy of the hook answer must not be spoken again")
+        XCTAssertFalse(late.contains { if case .turnStarted = $0 { true } else { false } }, "no orphan turn")
+    }
+
     func test_TurnAssembler_stopFailure_humanised() async {
         _ = await ingest(RecordBuilder.humanPrompt("hi", promptID: "p1"))
         let events = await assembler.ingestHook(hook("StopFailure", ["prompt_id": "p1", "error_type": "rate_limit"]), title: "Yard")
