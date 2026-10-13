@@ -4,6 +4,7 @@ import ClaudioCore
 import Foundation
 import KeyboardShortcuts
 import ServiceManagement
+import SwiftUI
 import Synchronization
 
 /// Builds the whole object graph once (document 07 §1.2).
@@ -146,6 +147,19 @@ final class CompositionRoot {
             }
         }
         Log.ui.info("launched \(BuildInfo.versionString) bundled=\(paths.isBundled)")
+        if ProcessInfo.processInfo.environment["CLAUDIO_SELFTEST"] == "1" { runSelfTest() }
+    }
+
+    /// Exercises the code paths that depend on bundled resources (chimes, the hotkey recorder's localized
+    /// strings) and exits 0, so a packaged build can be checked on a machine that did not build it.
+    private func runSelfTest() {
+        let chimes = ChimeResources.load()
+        let recorder = NSHostingView(rootView: KeyboardShortcuts.Recorder("Pause / resume", name: .pauseResume))
+        recorder.frame = NSRect(x: 0, y: 0, width: 300, height: 40)
+        recorder.layoutSubtreeIfNeeded()
+        let placeholder = "record_shortcut".localizedSelfTest
+        FileHandle.standardError.write(Data("selftest ok: chimes=\(chimes.count) resourceBundle=\(ChimeResources.resourceBundle != nil) recorderPlaceholder=\(placeholder)\n".utf8))
+        exit(0)
     }
 
     func willTerminate() {

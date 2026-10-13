@@ -9,8 +9,27 @@ extension String {
 	Makes the string localizable.
 	*/
 	var localized: String {
-		NSLocalizedString(self, bundle: .module, comment: self)
+		// Claudio change: SwiftPM's `Bundle.module` accessor only checks the top level of the host app and an
+		// absolute path inside the build checkout, and calls `fatalError` otherwise. Look for the resource bundle
+		// where an app bundle actually carries it and fall back to the untranslated key.
+		guard let bundle = KeyboardShortcutsResources.bundle else { return self }
+		return NSLocalizedString(self, bundle: bundle, comment: self)
 	}
+}
+
+enum KeyboardShortcutsResources {
+	static let bundle: Bundle? = {
+		let name = "KeyboardShortcuts_KeyboardShortcuts.bundle"
+		let candidates: [URL?] = [
+			Bundle.main.resourceURL?.appendingPathComponent(name),
+			Bundle.main.bundleURL.appendingPathComponent(name),
+			Bundle.main.executableURL?.deletingLastPathComponent().appendingPathComponent(name),
+		]
+		for url in candidates.compactMap({ $0 }) where FileManager.default.fileExists(atPath: url.path) {
+			if let bundle = Bundle(url: url) { return bundle }
+		}
+		return nil
+	}()
 }
 
 

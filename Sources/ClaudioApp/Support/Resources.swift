@@ -70,3 +70,12 @@ enum ChimeResources {
         return PCMBuffer(samples: samples)
     }
 }
+
+extension String {
+    /// Mirrors the vendored KeyboardShortcuts lookup so the self-test can report whether its localizations resolve.
+    var localizedSelfTest: String {
+        let name = "KeyboardShortcuts_KeyboardShortcuts.bundle"
+        guard let url = Bundle.main.resourceURL?.appendingPathComponent(name), let bundle = Bundle(url: url) else { return "(bundle missing)" }
+        return NSLocalizedString(self, bundle: bundle, comment: self)
+    }
+}

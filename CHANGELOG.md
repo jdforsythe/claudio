@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 — 2026-10-13
+
+- Fix a crash when opening Settings → Hotkeys (and thereafter any Settings open) on machines other than the build machine: the vendored KeyboardShortcuts library resolved its localized strings through the same generated `Bundle.module` accessor. The library now finds its resource bundle in the app and the bundle ships inside `Claudio.app`.
+- `CLAUDIO_SELFTEST=1 /Applications/Claudio.app/Contents/MacOS/Claudio` checks bundled resources and exits.
+
 ## 0.1.1 — 2026-10-13
 
 - Fix a crash on launch on any machine other than the one that built the app: the SwiftPM `Bundle.module` accessor fell back to an absolute path inside the build checkout and called `fatalError` when it was missing. The resource bundle is now located explicitly, and a missing bundle only means synthesized chimes.

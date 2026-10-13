@@ -38,7 +38,9 @@ else
   echo "▸ no AppIcon.icns; run scripts/make-icon.sh (continuing without an icon)"
 fi
 if [ -d "$PRODUCTS/Claudio_ClaudioApp.bundle" ]; then
-  cp -R "$PRODUCTS/Claudio_ClaudioApp.bundle" "$APP/Contents/Resources/"
+  # Every SwiftPM resource bundle (the app's chimes, KeyboardShortcuts' localizations) ships in Contents/Resources;
+  # the code locates them there explicitly rather than through the generated Bundle.module accessors.
+  for b in "$PRODUCTS"/*.bundle; do cp -R "$b" "$APP/Contents/Resources/"; done
 else
   echo "✗ resource bundle missing; run swift build first" >&2; exit 1
 fi
@@ -48,13 +50,16 @@ xattr -cr "$APP" 2>/dev/null || true
 # Sign, innermost first: the SwiftPM resource bundle (which carries no identifier of its own), the CLI helper,
 # then the app. Hardened runtime only for Developer ID.
 ENT="$ROOT/Resources/Claudio.entitlements"
-RES_BUNDLE="$APP/Contents/Resources/Claudio_ClaudioApp.bundle"
 if [ "$SIGN" = "-" ]; then
-  codesign --force --sign - --identifier com.jdforsythe.claudio.resources "$RES_BUNDLE"
+  for b in "$APP"/Contents/Resources/*.bundle; do
+    codesign --force --sign - --identifier "com.jdforsythe.claudio.$(basename "$b" .bundle | tr '_' '.' | tr '[:upper:]' '[:lower:]')" "$b"
+  done
   codesign --force --sign - --identifier com.jdforsythe.claudio.cli --entitlements "$ENT" "$APP/Contents/Helpers/claudio"
   codesign --force --sign - --entitlements "$ENT" --identifier com.jdforsythe.claudio "$APP"
 else
-  codesign --force --sign "$SIGN" --identifier com.jdforsythe.claudio.resources --timestamp "$RES_BUNDLE"
+  for b in "$APP"/Contents/Resources/*.bundle; do
+    codesign --force --sign "$SIGN" --identifier "com.jdforsythe.claudio.$(basename "$b" .bundle | tr '_' '.' | tr '[:upper:]' '[:lower:]')" --timestamp "$b"
+  done
   codesign --force --sign "$SIGN" --identifier com.jdforsythe.claudio.cli --options runtime --timestamp --entitlements "$ENT" "$APP/Contents/Helpers/claudio"
   codesign --force --sign "$SIGN" --options runtime --timestamp --entitlements "$ENT" "$APP"
 fi
