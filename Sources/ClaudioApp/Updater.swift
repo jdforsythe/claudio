@@ -142,7 +142,11 @@ final class Updater {
             state = .installing
             try replaceBundle(withZip: zipFile)
             Log.ui.info("installed update \(release.version); relaunching")
-            relaunch()
+            // Let the caller (Settings or the CLI) receive the result before the process goes away.
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(700))
+                self.relaunch()
+            }
         } catch {
             state = .failed(String(describing: error))
             Log.ui.error("update failed: \(error)")
