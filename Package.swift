@@ -31,13 +31,16 @@ let testTargets: [Target] = useXCTest
     ]
     : [
         supportTarget,
-        .target(name: "XCTest", path: "Tests/XCTestShim", swiftSettings: strictConcurrency),
+        // NonisolatedNonsendingByDefault lets the shim's lifecycle call the (non-Sendable) test case's async
+        // setUp/tearDown on the caller's isolation, matching how XCTest itself runs them.
+        .target(name: "XCTest", path: "Tests/XCTestShim",
+                swiftSettings: strictConcurrency + [.enableUpcomingFeature("NonisolatedNonsendingByDefault")]),
         .executableTarget(
             name: "claudio-tests",
             dependencies: ["ClaudioControlProtocol", "ClaudioCore", "ClaudioBackends", "TestSupport", "XCTest"],
             path: "Tests",
             exclude: ["Fixtures", "TestSupport", "XCTestShim", "README.md"],
-            swiftSettings: strictConcurrency
+            swiftSettings: strictConcurrency + [.enableUpcomingFeature("NonisolatedNonsendingByDefault")]
         ),
     ]
 

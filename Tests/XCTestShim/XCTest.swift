@@ -42,7 +42,7 @@ public enum XCTContext {
     }
 }
 
-open class XCTestCase: NSObject, @unchecked Sendable {
+open class XCTestCase: NSObject {
     public required override init() { super.init() }
     open func setUp() {}
     open func tearDown() {}
@@ -52,7 +52,7 @@ open class XCTestCase: NSObject, @unchecked Sendable {
     open func tearDown() async throws {}
 
     /// Runs the XCTest lifecycle around one test body.
-    public func runLifecycle(_ body: () async throws -> Void) async throws {
+    public func runLifecycle(isolation: isolated (any Actor)? = #isolation, _ body: () async throws -> Void) async throws {
         let syncSetUp: () -> Void = setUp
         let syncTearDown: () -> Void = tearDown
         try await setUp()

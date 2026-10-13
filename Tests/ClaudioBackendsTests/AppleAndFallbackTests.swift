@@ -36,18 +36,20 @@ final class AppleSpeechBackendTests: XCTestCase {
     func test_AppleSpeechBackend_concurrentRequests_serialized_andCancellable() async throws {
         let backend = AppleSpeechBackend()
         let voice = try XCTUnwrap(AppleSpeechBackend.defaultVoice())
-        async let a = count(backend.synthesize(SynthesisRequest(text: "First request.", voice: voice, rate: 1.5)))
-        async let b = count(backend.synthesize(SynthesisRequest(text: "Second request.", voice: voice, rate: 1.5)))
+        async let a = Self.count(backend.synthesize(SynthesisRequest(text: "First request.", voice: voice, rate: 1.5)))
+        async let b = Self.count(backend.synthesize(SynthesisRequest(text: "Second request.", voice: voice, rate: 1.5)))
         let (fa, fb) = try await (a, b)
         XCTAssertGreaterThan(fa, 0)
         XCTAssertGreaterThan(fb, 0)
-        let task = Task { try await count(backend.synthesize(SynthesisRequest(text: "A very long sentence that will be cancelled early.", voice: voice, rate: 1))) }
-        try? await Task.sleep(for: .milliseconds(30))
-        task.cancel()
-        _ = try? await task.value
+        let longStream = backend.synthesize(SynthesisRequest(text: "A very long sentence that will be cancelled early.", voice: voice, rate: 1))
+        await withThrowingTaskGroup(of: Int.self) { group in
+            group.addTask { try await Self.count(longStream) }
+            try? await Task.sleep(for: .milliseconds(30))
+            group.cancelAll()
+        }
     }
 
-    private func count(_ stream: AsyncThrowingStream<SynthesisEvent, any Error>) async throws -> Int {
+    private static func count(_ stream: AsyncThrowingStream<SynthesisEvent, any Error>) async throws -> Int {
         var frames = 0
         for try await e in stream { if case .audio(let b) = e { frames += b.frameCount } }
         return frames
@@ -55,16 +57,16 @@ final class AppleSpeechBackendTests: XCTestCase {
 }
 
 final class FallbackBackendTests: XCTestCase {
-    let appleVoice = Voice(backend: "apple", id: "fallback", displayName: "F", locale: "en-US")
-    func request(_ text: String = "Hello there friend.") -> SynthesisRequest {
+    static let appleVoice = Voice(backend: "apple", id: "fallback", displayName: "F", locale: "en-US")
+    static func request(_ text: String = "Hello there friend.") -> SynthesisRequest {
         SynthesisRequest(text: text, voice: MockBackend.voice(for: "edge"), rate: 1)
     }
 
     private func make(primary: MockBackend, fallback: MockBackend, timeout: TimeInterval = 3, clock: any ClaudioClock = SystemClock()) -> FallbackBackend {
-        FallbackBackend(primary: primary, fallback: fallback, firstAudioTimeout: timeout, clock: clock) { [appleVoice] _ in appleVoice }
+        FallbackBackend(primary: primary, fallback: fallback, firstAudioTimeout: timeout, clock: clock) { _ in Self.appleVoice }
     }
 
-    private func run(_ b: FallbackBackend, _ r: SynthesisRequest) async throws -> Int {
+    private static func run(_ b: FallbackBackend, _ r: SynthesisRequest) async throws -> Int {
         var frames = 0
         for try await e in b.synthesize(r) { if case .audio(let x) = e { frames += x.frameCount } }
         return frames
@@ -74,7 +76,7 @@ final class FallbackBackendTests: XCTestCase {
         let p = MockBackend(id: "edge"), f = MockBackend(id: "apple")
         let b = make(primary: p, fallback: f)
         let usage = b.usageStream()
-        let frames = try await run(b, request())
+        let frames = try await Self.run(b, Self.request())
         XCTAssertGreaterThan(frames, 0)
         XCTAssertEqual(f.calls.count, 0)
         var it = usage.makeAsyncIterator()
@@ -85,7 +87,7 @@ final class FallbackBackendTests: XCTestCase {
         let p = MockBackend(id: "edge"), f = MockBackend(id: "apple")
         p.setBehaviour(.fail(.auth("403")))
         let b = make(primary: p, fallback: f)
-        let frames = try await run(b, request())
+        let frames = try await Self.run(b, Self.request())
         XCTAssertGreaterThan(frames, 0)
         XCTAssertEqual(f.calls.first?.voice.id, "fallback")
         XCTAssertEqual(f.calls.first?.text, "Hello there friend.")
@@ -96,18 +98,18 @@ final class FallbackBackendTests: XCTestCase {
         let p = MockBackend(id: "edge", clock: clock), f = MockBackend(id: "apple")
         p.setBehaviour(.hang)
         let b = make(primary: p, fallback: f, timeout: 3, clock: clock)
-        let task = Task { try await self.run(b, self.request()) }
+        async let task = Self.run(b, Self.request())
         _ = await waitUntil(1) { clock.pendingSleepers >= 2 }
         clock.advance(by: 3.1)
-        let frames1 = try await task.value
+        let frames1 = try await task
         XCTAssertGreaterThan(frames1, 0)
         XCTAssertEqual(f.calls.count, 1)
         let p2 = MockBackend(id: "edge", delay: 2.9, clock: clock), f2 = MockBackend(id: "apple")
         let b2 = make(primary: p2, fallback: f2, timeout: 3, clock: clock)
-        let task2 = Task { try await self.run(b2, self.request()) }
+        async let task2 = Self.run(b2, Self.request())
         _ = await waitUntil(1) { clock.pendingSleepers >= 2 }
         clock.advance(by: 2.95)
-        let frames2 = try await task2.value
+        let frames2 = try await task2
         XCTAssertGreaterThan(frames2, 0)
         XCTAssertEqual(f2.calls.count, 0)
     }
@@ -117,7 +119,7 @@ final class FallbackBackendTests: XCTestCase {
         p.setBehaviour(.failAfterAudio(.network("drop")))
         let b = make(primary: p, fallback: f)
         do {
-            _ = try await run(b, request())
+            _ = try await Self.run(b, Self.request())
             XCTFail("expected rethrow")
         } catch {
             XCTAssertEqual(error as? BackendError, .network("drop"))
@@ -132,14 +134,14 @@ final class FallbackBackendTests: XCTestCase {
         f.setBehaviour(.fail(.decode("no audio")), forCall: 0)
         let b = make(primary: p, fallback: f, clock: clock)
         let notices = b.noticeStream()
-        do { _ = try await run(b, request()); XCTFail("expected error") } catch { XCTAssertEqual(error as? BackendError, .decode("no audio")) }
-        _ = try? await run(b, request())
-        _ = try? await run(b, request())
+        do { _ = try await Self.run(b, Self.request()); XCTFail("expected error") } catch { XCTAssertEqual(error as? BackendError, .decode("no audio")) }
+        _ = try? await Self.run(b, Self.request())
+        _ = try? await Self.run(b, Self.request())
         var it = notices.makeAsyncIterator()
         let first = await it.next()
         XCTAssertNotNil(first)
         clock.advance(by: 3601)
-        _ = try? await run(b, request())
+        _ = try? await Self.run(b, Self.request())
         let second = await it.next()
         XCTAssertNotNil(second)
     }
