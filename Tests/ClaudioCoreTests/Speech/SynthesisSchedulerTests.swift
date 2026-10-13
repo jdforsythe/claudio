@@ -27,10 +27,9 @@ final class SynthesisSchedulerTests: XCTestCase {
         XCTAssertTrue(ok14)
         XCTAssertLessThanOrEqual(backend.maxConcurrent, 3)
         XCTAssertEqual(backend.calls.count, 8)
-        let order = sink.playbackOrder
-        let snapshotTexts = backend.calls.map(\.text)
-        XCTAssertEqual(order.count, 8)
-        XCTAssertEqual(snapshotTexts.first?.prefix(17), "Sentence number 1")
+        XCTAssertEqual(sink.playbackOrder.count, 8)
+        XCTAssertEqual(sink.finishedOrder, sink.playbackOrder)
+        XCTAssertEqual(Set(backend.calls.map { String($0.text.prefix(17)) }), Set((1...8).map { "Sentence number \($0)" }))
     }
 
     func test_SynthesisScheduler_outOfOrderCompletion_playsInOrder() async {
