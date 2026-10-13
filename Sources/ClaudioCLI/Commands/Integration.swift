@@ -71,6 +71,18 @@ struct Voices: ParsableCommand {
     }
 }
 
+struct Update: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "Check GitHub for a newer Claudio; --install downloads it, replaces the app and relaunches.")
+    @OptionGroup var options: GlobalOptions
+    @Flag(name: .long, help: "Install the update if one is available.") var install = false
+    func run() {
+        let cli = CLI(options: options)
+        let response = (try? cli.client.send(.update(install: install), readTimeoutMs: 120_000)) ?? ControlResponse.failure("Claudio is not running")
+        if options.json { print(CLI.jsonString(response)); return }
+        if case .text(let t)? = response.result { print(t) } else { cli.fail(response.error ?? "Claudio is not running", code: CLIExit.notRunning) }
+    }
+}
+
 struct Uninstall: ParsableCommand {
     static let configuration = CommandConfiguration(abstract: "Remove hooks, the /speak skill and the CLI symlink; --all also removes app data.")
     @OptionGroup var options: GlobalOptions

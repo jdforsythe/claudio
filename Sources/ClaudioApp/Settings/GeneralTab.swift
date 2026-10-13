@@ -1,8 +1,39 @@
+import ClaudioControlProtocol
 import ServiceManagement
 import SwiftUI
 
 struct GeneralTab: View {
     @Environment(SettingsViewModel.self) private var vm
+
+    private var updater: Updater { CompositionRoot.shared.updater }
+
+    private var updateButtonTitle: String {
+        if case .available(let v) = updater.state { return "Install \(v) and relaunch" }
+        return "Check for updates now"
+    }
+
+    private var updateBusy: Bool {
+        switch updater.state {
+        case .checking, .downloading, .installing: true
+        default: false
+        }
+    }
+
+    private var updateStatusText: String {
+        switch updater.state {
+        case .idle: "Running \(BuildInfo.version)"
+        case .checking: "Checking…"
+        case .upToDate: "\(BuildInfo.version) is the latest version"
+        case .available(let v): "Version \(v) is available"
+        case .downloading(let v): "Downloading \(v)…"
+        case .installing: "Installing…"
+        case .failed(let e): "Update failed: \(e)"
+        }
+    }
+
+    private func updateAction() async {
+        if case .available = updater.state { await updater.installLatest() } else { await updater.check() }
+    }
 
     var body: some View {
         @Bindable var settings = vm.settings
@@ -18,6 +49,14 @@ struct GeneralTab: View {
                             if let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") { NSWorkspace.shared.open(url) }
                         }
                     }
+                }
+            }
+            Section {
+                Toggle("Check for updates automatically", isOn: $settings.autoUpdateCheck)
+                HelpText("Looks at GitHub once a day. Updates install without the first-launch approval step.")
+                HStack {
+                    Button(updateButtonTitle) { Task { await updateAction() } }.disabled(updateBusy)
+                    Text(updateStatusText).font(.caption).foregroundStyle(.secondary)
                 }
             }
             Section {

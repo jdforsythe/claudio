@@ -109,6 +109,21 @@ final class AppControlHost: ControlHostDelegate {
         return checks
     }
 
+    func update(install: Bool) async -> String {
+        let updater = await root.updater
+        await updater.check()
+        switch await updater.state {
+        case .available(let v):
+            guard install else { return "Version \(v) is available; run `claudio update --install` to install it" }
+            await updater.installLatest()
+            if case .failed(let e) = await updater.state { return "Update failed: \(e)" }
+            return "Installing \(v); Claudio is relaunching"
+        case .upToDate: return "\(BuildInfo.version) is the latest version"
+        case .failed(let e): return "Update check failed: \(e)"
+        default: return "Update check did not complete"
+        }
+    }
+
     func bench(backend: String?, fixture: String?, runs: Int) async -> String {
         let configured = await root.settings.backendID
         let id = backend ?? configured

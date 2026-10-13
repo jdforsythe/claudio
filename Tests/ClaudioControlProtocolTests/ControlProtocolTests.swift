@@ -9,7 +9,7 @@ final class ControlProtocolTests: XCTestCase {
             .toggle, .skip, .live, .mute(true), .say(text: "hello"), .hooksStatus, .hooksInstall, .hooksUninstall, .link(false),
             .skill(install: true), .version, .ping, .activate, .quit, .render(markdown: "# hi"), .subscribe(.items, session: nil),
             .bench(backend: "edge", fixture: nil, runs: 3), .doctor, .dumpState, .voices(backend: "apple"),
-            .speakSession(session: "x", level: .answers),
+            .speakSession(session: "x", level: .answers), .update(install: true),
         ]
         for request in cases {
             let data = try ControlCoding.encodeLine(ControlEnvelope(request: request))

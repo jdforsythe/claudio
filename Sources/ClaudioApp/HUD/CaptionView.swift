@@ -8,7 +8,7 @@ struct CaptionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if let previous = playback.previousSegmentText, !previous.isEmpty {
-                Text(previous).foregroundStyle(.secondary).opacity(0.6).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                Text(previous).foregroundStyle(.secondary).opacity(0.6).lineLimit(3).fixedSize(horizontal: false, vertical: true)
             }
             if let current = playback.currentSegmentText {
                 Text(attributed(current))
@@ -22,7 +22,7 @@ struct CaptionView: View {
         }
         .font(.system(size: 13).monospacedDigit())
         .textSelection(.enabled)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
     }
 
     private var reduceMotion: Bool { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }

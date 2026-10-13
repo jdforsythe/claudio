@@ -35,6 +35,7 @@ final class CompositionRoot {
     let hudViewModel: HUDViewModel
     let settingsViewModel: SettingsViewModel
     private(set) var hudController: HUDController?
+    let updater: Updater
     private(set) var hotkeys: HotkeyManager?
     private let voiceCache = VoiceCache()
     private var currentFallback: FallbackBackend
@@ -84,6 +85,7 @@ final class CompositionRoot {
         sessionsViewModel = SessionsViewModel(registry: registry, arbiter: arbiter)
         playbackViewModel = PlaybackViewModel(arbiter: arbiter, pipeline: pipeline, settings: settings)
         hudViewModel = HUDViewModel(arbiter: arbiter, pipeline: pipeline, registry: registry, settings: settings)
+        updater = Updater(settings: settings, bundleURL: Bundle.main.bundleURL, isBundled: paths.isBundled)
         settingsViewModel = SettingsViewModel(settings: settings, catalog: voiceCatalog, apple: apple, hookInstaller: hookInstaller,
                                               skillInstaller: skillInstaller, keychain: keychain, projectPrefs: projectPrefs,
                                               paths: paths, arbiter: arbiter, pipeline: pipeline, registry: registry)
@@ -134,7 +136,9 @@ final class CompositionRoot {
             playbackViewModel.start()
             hudViewModel.start()
             settingsViewModel.start()
-            hudController = HUDController(viewModel: hudViewModel, playback: playbackViewModel, settings: settings)
+            hudController = HUDController(viewModel: hudViewModel, playback: playbackViewModel, sessions: sessionsViewModel,
+                                          settingsViewModel: settingsViewModel, settings: settings)
+            updater.start()
             hotkeys = HotkeyManager(sessions: sessionsViewModel, playback: playbackViewModel, settings: settings, arbiter: arbiter, pipeline: pipeline)
             observeSettings()
             observeNotices()

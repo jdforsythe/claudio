@@ -334,6 +334,8 @@ public struct SpeechTextRenderer: Sendable {
         for ch in ["<", ">", "(", ")", "[", "]", "{", "}", "\"", "'"] {
             t = t.replacingOccurrences(of: ch, with: " ")
         }
+        // Identifiers and long numbers are spelled out (same rule as prose).
+        t = MarkdownSpeechRules.ruleIdentifiers(t)
         // Dotted paths that are not filenames: a.b.c → a b c
         t = t.replacingOccurrences(of: ".", with: " ")
         // snake_case → words (keep all-caps runs)

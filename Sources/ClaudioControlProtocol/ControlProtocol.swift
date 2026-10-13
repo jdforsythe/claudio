@@ -96,6 +96,7 @@ public enum ControlRequest: Codable, Sendable, Equatable {
     case dumpState
     case voices(backend: String?)
     case speakSession(session: String, level: SpeechLevel)
+    case update(install: Bool)
 }
 
 public struct SegmentSummary: Codable, Sendable, Equatable {

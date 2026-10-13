@@ -6,7 +6,7 @@ import SwiftUI
 @MainActor
 final class HUDController {
     static let hideDelay: TimeInterval = 4
-    static let defaultSize = NSSize(width: 320, height: 56)
+    static let defaultSize = NSSize(width: HUDView.width, height: 84)
 
     private let panel: HUDPanel
     private let viewModel: HUDViewModel
@@ -17,13 +17,12 @@ final class HUDController {
     private var hovered = false
     private var screenObserver: (any NSObjectProtocol)?
 
-    struct NoSettings: SettingsViewModelLike {}
-
-    init(viewModel: HUDViewModel, playback: PlaybackViewModel, settings: AppSettings) {
+    init(viewModel: HUDViewModel, playback: PlaybackViewModel, sessions: SessionsViewModel, settingsViewModel: SettingsViewModel,
+         settings: AppSettings) {
         self.viewModel = viewModel
         self.playback = playback
         self.settings = settings
-        panel = HUDPanel(viewModel: viewModel, playback: playback, settings: NoSettings())
+        panel = HUDPanel(viewModel: viewModel, playback: playback, sessions: sessions, settings: settingsViewModel)
         panel.onReturn = { [weak viewModel] in viewModel?.acceptNewestPrompt() }
         restoreFrame()
         NotificationCenter.default.addObserver(forName: NSWindow.didMoveNotification, object: panel, queue: .main) { [weak self] _ in

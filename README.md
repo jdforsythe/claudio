@@ -70,7 +70,7 @@ Submitting a new prompt in the active session stops speech immediately and disca
 
 ### The HUD
 
-A small floating panel appears while Claudio speaks and hides a few seconds after it goes quiet. It shows the active session, progress through the current answer, transport buttons, and background-session prompts. The chevron opens captions with the spoken word highlighted; the pin keeps the panel visible. Drag it anywhere; it remembers its place.
+A floating panel appears while Claudio speaks and hides a few seconds after it goes quiet. The top line names the active session and is a menu for switching to another; the right side shows how far through the current answer it is ("3 / 6" sentences). The second line has pause, skip this sentence, the voice (engine and voices for the current language), speed, the transcript toggle and a pin to keep the panel visible. During catch-up a "Skip to live" button appears. Drag the panel anywhere; it remembers its place.
 
 ### Hotkeys
 
@@ -108,9 +108,14 @@ claudio level narrate          # set the level of this session (from inside Clau
 claudio pause | resume | skip | live | mute | unmute
 claudio say "lunch is ready"   # speak something between sentences
 claudio doctor                 # check the installation
+claudio update --install       # install the latest release and relaunch
 ```
 
 Installing the `/speak` skill (same tab) lets you type `/speak off`, `/speak narrate` or `/speak live` inside a Claude Code session.
+
+## Updating
+
+Claudio checks GitHub for a new release once a day (Settings → General, where you can also check now). When one is available the popover footer shows "Update to x.y.z"; click it and Claudio downloads the build, verifies it, replaces itself in Applications and relaunches. Updates installed this way do not trigger the first-launch approval step. If you prefer, download the new DMG and drag it over the old app; Claudio notices and relaunches itself, but macOS will ask for approval again because the download came through a browser.
 
 ## Troubleshooting
 

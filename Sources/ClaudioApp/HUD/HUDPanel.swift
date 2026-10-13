@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Floating non-activating panel (document 07 §4.1).
 final class HUDPanel: NSPanel {
-    init(viewModel: HUDViewModel, playback: PlaybackViewModel, settings: any SettingsViewModelLike) {
+    init(viewModel: HUDViewModel, playback: PlaybackViewModel, sessions: SessionsViewModel, settings: SettingsViewModel) {
         super.init(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -14,7 +14,12 @@ final class HUDPanel: NSPanel {
         hasShadow = true
         isReleasedWhenClosed = false
         animationBehavior = .utilityWindow
-        let hosting = NSHostingView(rootView: HUDView().environment(viewModel).environment(playback))
+        let root = HUDView()
+            .environment(viewModel)
+            .environment(playback)
+            .environment(sessions)
+            .environment(settings)
+        let hosting = NSHostingView(rootView: root)
         hosting.sizingOptions = [.preferredContentSize]
         contentView = hosting
         setAccessibilityRole(.group)
@@ -29,5 +34,3 @@ final class HUDPanel: NSPanel {
 
     var onReturn: (() -> Void)?
 }
-
-protocol SettingsViewModelLike {}

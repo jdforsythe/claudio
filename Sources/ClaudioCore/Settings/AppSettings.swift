@@ -68,6 +68,7 @@ public final class AppSettings: @unchecked Sendable {
         case speakThinking, speakToolErrors, extraTranscriptRoots, hooksEnabled, launchAtLogin, logLevel
         case firstLaunchCompleted, lookahead, fallbackTimeoutSeconds, sessionExpiryHours, openAIModel, openAIVoice
         case settingsSchemaVersion, liveAgentsProbeInterval, orcaWorktreeRoots, fallbackVoiceOverrides
+        case autoUpdateCheck, lastUpdateCheck
     }
 
     public enum Defaults {
@@ -362,6 +363,16 @@ public final class AppSettings: @unchecked Sendable {
     public var fallbackVoiceOverrides: [String: String] {
         get { access(keyPath: \.fallbackVoiceOverrides); return defaults.dictionary(forKey: Key.fallbackVoiceOverrides.rawValue) as? [String: String] ?? [:] }
         set { set(newValue, .fallbackVoiceOverrides) }
+    }
+
+    public var autoUpdateCheck: Bool {
+        get { access(keyPath: \.autoUpdateCheck); return bool(.autoUpdateCheck, default: true) }
+        set { set(newValue, .autoUpdateCheck) }
+    }
+
+    public var lastUpdateCheck: Date {
+        get { access(keyPath: \.lastUpdateCheck); return defaults.object(forKey: Key.lastUpdateCheck.rawValue) as? Date ?? .distantPast }
+        set { set(newValue, .lastUpdateCheck) }
     }
 
     public var settingsSchemaVersion: Int {

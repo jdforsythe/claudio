@@ -45,6 +45,9 @@ public struct MarkdownSpeechRules: Sendable {
     static let escapes = Rx(#"\\([\\`*_{}\[\]()#+\-.!|])"#)
     static let fileLineRef = Rx(#"\(([\w./-]+\.\w{1,5}):(\d+)\)"#)
     static let multiPunct = Rx(#"([.!?]){2,}"#)
+    static let uuid = Rx(#"(?<![\w-])[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?![\w-])"#)
+    static let hexID = Rx(#"(?<![\w-])(?<![\w][.])(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{6,}(?![\w-])(?![.][\w])"#)
+    static let longNumber = Rx(#"(?<!\d)(?<!\d[.,])\d{5,}(?!\d)(?![.,]\d)"#)
 
     static func ruleImages(_ s: String) -> String { image.replace(s, with: "") }
     static func ruleLinks(_ s: String) -> String { link.replace(s, with: "$1") }
@@ -86,6 +89,22 @@ public struct MarkdownSpeechRules: Sendable {
     static func ruleResidual(_ s: String) -> String { escapes.replace(residualLine.replace(s, with: ""), with: "$1") }
     static func ruleMultiPunct(_ s: String) -> String { multiPunct.replace(s) { g in String(g[0].prefix(1)) } }
 
+    /// Spells a token character by character: "562358f2" → "5 6 2 3 5 8 F 2". Letters are uppercased so the
+    /// engine says their names; dashes become short pauses.
+    public static func spelled(_ token: String) -> String {
+        token.map { ch -> String in
+            if ch == "-" { return "," }
+            return String(ch).uppercased()
+        }.joined(separator: " ").replacingOccurrences(of: " ,", with: ",")
+    }
+
+    static func ruleIdentifiers(_ s: String) -> String {
+        var out = uuid.replace(s) { g in spelled(g[0]) }
+        out = hexID.replace(out) { g in spelled(g[0]) }
+        out = longNumber.replace(out) { g in spelled(g[0]) }
+        return out
+    }
+
     static let standardRules: [Rule] = [
         Rule(number: 1, name: "images", apply: ruleImages),
         Rule(number: 2, name: "links", apply: ruleLinks),
@@ -104,5 +123,6 @@ public struct MarkdownSpeechRules: Sendable {
         Rule(number: 15, name: "box-drawing", apply: ruleBoxDrawing),
         Rule(number: 16, name: "residual-markdown", apply: ruleResidual),
         Rule(number: 18, name: "multi-punct", apply: ruleMultiPunct),
+        Rule(number: 19, name: "identifiers", apply: ruleIdentifiers),
     ]
 }

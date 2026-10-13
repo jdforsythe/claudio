@@ -85,7 +85,7 @@ struct Claudio: ParsableCommand {
         subcommands: [
             Status.self, Sessions.self, Switch.self, Level.self, Pause.self, Resume.self, Toggle.self, Skip.self, Live.self,
             Mute.self, Unmute.self, Say.self, Hook.self, Hooks.self, Link.self, SkillCommand.self, Version.self, Doctor.self,
-            Tail.self, Render.self, Bench.self, Voices.self, Debug.self, Uninstall.self,
+            Tail.self, Render.self, Bench.self, Voices.self, Debug.self, Update.self, Uninstall.self,
         ]
     )
 }

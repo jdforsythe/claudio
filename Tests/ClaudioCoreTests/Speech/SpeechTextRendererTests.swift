@@ -64,6 +64,10 @@ final class SpeechTextRendererTests: XCTestCase {
         XCTAssertEqual(text("See the parser (Parser.swift:42) for it."), "See the parser Parser dot swift line 42 for it.")
         XCTAssertEqual(text("Really?! Wow..."), "Really? Wow.")
         XCTAssertEqual(text("Keep version 2.1.290 and 50% and $3.50 intact."), "Keep version 2.1.290 and 50% and $3.50 intact.")
+        XCTAssertEqual(text("Session 562358f2 has pid 21934 in 2026."), "Session 5 6 2 3 5 8 F 2 has pid 2 1 9 3 4 in 2026.")
+        XCTAssertEqual(text("Costs 1,000,000 or 12345."), "Costs 1,000,000 or 1 2 3 4 5.")
+        XCTAssertEqual(text("Id `a01c0993` and `deadbeef`."), "Id A 0 1 C 0 9 9 3 and deadbeef.")
+        XCTAssertEqual(text("Ref 11111111-2222-4333-8444-555555555555 here."), "Ref 1 1 1 1 1 1 1 1, 2 2 2 2, 4 3 3 3, 8 4 4 4, 5 5 5 5 5 5 5 5 5 5 5 5 here.")
     }
 
     func test_SpeechTextRenderer_stageOrder_codeBeforeInline() {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 — 2026-10-13
+
+- Built-in updates: Settings → General checks GitHub releases (daily by default), downloads the new build, verifies its checksum, replaces the app and relaunches. Updates installed this way skip the Gatekeeper approval step. Dragging a new copy from a DMG over the running app also relaunches it.
+- HUD: wider, session title on its own line with a session switcher, voice and speed controls, one clearly labelled skip button (skip-to-live appears only during catch-up), readable sentence counter, longer transcript area.
+- Long numbers (5+ digits), hex identifiers and UUIDs are read digit by digit.
+
 ## 0.1.3 — 2026-10-13
 
 - Fix a background session being announced as finished twice when the `agent_completed` notification arrived before the `Stop` hook; turn end is now the single announcer and `agent_completed` simply ends the turn.

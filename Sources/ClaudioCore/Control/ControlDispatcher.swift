@@ -10,6 +10,7 @@ public protocol ControlHostDelegate: Sendable {
     func quit() async
     func currentVoiceName() async -> String
     func bench(backend: String?, fixture: String?, runs: Int) async -> String
+    func update(install: Bool) async -> String
 }
 
 /// Routes `ControlRequest`s to the registry, arbiter, pipeline and settings (document 04 §5.5).
@@ -152,6 +153,8 @@ public final class ControlDispatcher: Sendable {
         case .voices(let backend):
             let voices = try await host.voices(backend: backend)
             return .voices(voices.map(\.summary))
+        case .update(let install):
+            return .text(await host.update(install: install))
         case .speakSession(let query, let level):
             let session = try await registry.resolve(query).get()
             await registry.setLevel(level, for: session.id)

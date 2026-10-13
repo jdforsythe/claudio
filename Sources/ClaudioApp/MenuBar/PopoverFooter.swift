@@ -8,6 +8,10 @@ struct PopoverFooter: View {
         HStack {
             hooksLabel
             Spacer()
+            if let version = CompositionRoot.shared.updater.availableVersion {
+                Button("Update to \(version)") { Task { await CompositionRoot.shared.updater.installLatest() } }
+                    .buttonStyle(.link).font(.caption)
+            }
             Button { open() } label: { Image(systemName: "gearshape") }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("Settings")
