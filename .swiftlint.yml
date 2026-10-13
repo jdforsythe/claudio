@@ -1,0 +1,70 @@
+included:
+  - Sources
+  - Tests
+  - Package.swift
+excluded:
+  - .build
+  - build
+  - Vendor
+  - Sources/ClaudioControlProtocol/BuildInfo.swift   # generated
+
+analyzer_rules:
+  - unused_declaration
+  - unused_import
+
+opt_in_rules:
+  - array_init
+  - closure_spacing
+  - contains_over_filter_count
+  - contains_over_first_not_nil
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fallthrough
+  - fatal_error_message
+  - first_where
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - last_where
+  - legacy_multiple
+  - literal_expression_end_indentation
+  - modifier_order
+  - operator_usage_whitespace
+  - overridden_super_call
+  - prefer_self_type_over_type_of_self
+  - redundant_nil_coalescing
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - yoda_condition
+
+disabled_rules:
+  - todo
+  - trailing_comma
+  - opening_brace
+  - line_length
+  - type_body_length
+  - file_length
+  - function_body_length
+  - cyclomatic_complexity
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_urls: true
+  ignores_comments: true
+
+identifier_name:
+  min_length: 1
+  excluded: [id, x, y, i, j, k, db, ok, v, n, s, e, c, b, a, t, f, g, r, p, m, d, h, w]
+
+force_unwrapping:
+  severity: error
+
+custom_rules:
+  no_print:
+    name: "No print in library code"
+    regex: '^\s*print\('
+    included: "Sources/(ClaudioCore|ClaudioBackends|ClaudioApp)/.*\\.swift"
+    message: "Use Log.<category> instead of print"
+    severity: error

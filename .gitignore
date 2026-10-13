@@ -1,0 +1,7 @@
+.build/
+build/
+*.xcodeproj
+.swiftpm/
+.DS_Store
+/Package.resolved.bak
+Resources/AppIcon-1024.png

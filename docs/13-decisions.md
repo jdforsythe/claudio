@@ -153,3 +153,31 @@ Every product and technical decision, with the alternatives that were considered
 **Finding:** Tailing a live Claude Code 2.1.290 session with a 20 ms poller showed every per-block `assistant` record of a message arriving in one write after the message completed, each carrying the final `stop_reason`; zero null `stop_reason` values across 2,000 records. Block `timestamp` fields are generation times and can precede the write by up to 12 s.
 **Decision:** The primary classifier in D-25 is the production path on current Claude Code; the secondary and tertiary paths remain as guards. The transcript's text latency is bounded by message completion, so the `MessageDisplay` hook is the designated path for earlier text if a future version needs it. The probe fixtures `stop-reason-populated` and `stop-reason-absent` stay in the suite to detect a change.
 
+### D-28 — Core passes PCM as a Sendable value type, not `AVAudioPCMBuffer`
+**Date:** 2026-10-09
+**Decision:** `SynthesisEvent.audio` and `PlaybackSink.enqueue` carry `PCMBuffer` (a `Sendable` struct of Float32 samples at 24 kHz mono). `PlaybackEngine` converts to `AVAudioPCMBuffer` at the edge; backends convert from their engine's format into `PCMBuffer`.
+**Alternatives:** `AVAudioPCMBuffer` in the protocol as document 02 §4 originally wrote.
+**Why:** `AVAudioPCMBuffer` is not `Sendable`, so under Swift 6 strict concurrency every actor boundary in the scheduler would need `@unchecked Sendable` wrappers, which document 02 §6 forbids outside `PlaybackEngine`. A value type also makes `RecordingPlaybackSink` and `MockBackend` trivially deterministic. Cost: one copy per buffer (≈ 20 KB per 200 ms), negligible.
+
+### D-29 — KeyboardShortcuts is vendored without its `#Preview` blocks
+**Date:** 2026-10-09
+**Decision:** `Vendor/KeyboardShortcuts` is a local copy of sindresorhus/KeyboardShortcuts 2.3.0 (MIT) with the three `#Preview` macro invocations removed; `Package.swift` references it by path.
+**Alternatives:** Depend on the upstream package; replace it with a hand-written Carbon hotkey layer.
+**Why:** `#Preview` expands through the `PreviewsMacros` compiler plugin, which ships only with Xcode. Document 10 promises a Command Line Tools-only build, and the upstream package fails to compile under that toolchain in both debug and release. Vendoring keeps the library's recorder UI and storage; updating is a copy plus the same three-line removal (see `Vendor/KeyboardShortcuts/README.md`).
+
+### D-30 — The CLI product is `claudio-cli`, installed as `Contents/Helpers/claudio`
+**Date:** 2026-10-09
+**Decision:** The SwiftPM executable product for the CLI is named `claudio-cli`. `scripts/make-app.sh` copies it into the bundle as `Contents/Helpers/claudio`. The hook command written to `~/.claude/settings.json` is `<bundle>/Contents/Helpers/claudio hook`; `HookInstaller` recognises both `Contents/Helpers/claudio hook` and the originally documented `Contents/MacOS/claudio hook` as its own. `/usr/local/bin/claudio` and the `/speak` skill point at the Helpers path. Unbundled runs find the CLI as `claudio-cli` next to the app binary.
+**Alternatives:** Products `Claudio` and `claudio` in the same directory as documents 02 and 10 specify.
+**Why:** The default APFS volume is case-insensitive. SwiftPM wrote both products to `.build/<config>/Claudio` (same inode), so running the CLI launched a second copy of the app, and the same collision would occur inside `Contents/MacOS`. The user-facing command name and the hook marker (`Claudio.app/.../claudio hook`) are unchanged.
+
+### D-31 — Caption scrolling: the HUD panel sizes itself from SwiftUI's preferred height
+**Date:** 2026-10-09
+**Decision:** `HUDPanel`'s `NSHostingView` uses `sizingOptions = [.preferredContentSize]`; `HUDController` re-anchors the top-left corner on every content-driven resize and treats a user drag as the new anchor. Caption text wraps without a line limit.
+**Why:** Measuring the content with a `GeometryReader` inside the already-sized window could only ever report the window's current height, so captions were clipped at 56 pt instead of wrapping (found in first use).
+
+### D-32 — Tests run through an XCTest-compatible shim when Xcode is absent
+**Date:** 2026-10-09
+**Decision:** `Package.swift` checks for Xcode's `XCTest.framework` (override with `CLAUDIO_XCTEST=0|1`). With it, the four suites are ordinary `.testTarget`s run by `swift test`. Without it, the same sources compile against `Tests/XCTestShim` (a module named `XCTest` providing `XCTestCase`, the `XCTAssert*` family, `XCTUnwrap`, `XCTSkip`) into the `claudio-tests` executable; `scripts/gen-test-registry.py` generates the method registry (no runtime discovery without XCTest) and `scripts/run-tests.sh` (`make test`) picks the right path. Shared helpers live in the `TestSupport` target so no source file belongs to two targets.
+**Alternatives:** Require Xcode for tests; Swift Testing (`import Testing`).
+**Why:** The Command Line Tools on the development machine ship neither XCTest nor the Swift Testing module, and document 10 promises a CLT-only workflow. The shim keeps the suite source-compatible with real XCTest, so CI runners with Xcode use the standard runner unchanged. The shim applies a 30 s per-test timeout and prints one line per test.

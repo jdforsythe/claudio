@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+FILES=$(git diff --cached --name-only --diff-filter=ACM -- '*.swift' | grep -v BuildInfo.swift | grep -v '^Vendor/' || true)
+[ -z "$FILES" ] && exit 0
+command -v swift-format >/dev/null && swift-format format --in-place --configuration .swift-format $FILES
+command -v swiftlint >/dev/null && swiftlint lint --strict --quiet --config .swiftlint.yml -- $FILES
+git add $FILES

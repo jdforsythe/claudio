@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Lint, test, bundle
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Select toolchain
+        run: |
+          swift --version
+          swift --version | grep -q "Swift version 6" || { echo "Swift 6 required"; exit 1; }
+
+      - name: Install tools
+        run: brew bundle --no-upgrade
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: spm-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-${{ hashFiles('Package.swift') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Lint
+        run: make lint
+        continue-on-error: true
+
+      - name: Test
+        run: make test
+        env:
+          CLAUDIO_LIVE_TESTS: "0"
+
+      - name: Bundle app (ad-hoc signed)
+        run: make app
+
+      - name: Package DMG and zip
+        run: |
+          scripts/make-dmg.sh build/Claudio.dmg
+          ditto -c -k --keepParent build/Claudio.app build/Claudio.zip
+
+      - name: Upload app artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Claudio.app
+          path: |
+            build/Claudio.zip
+            build/Claudio.dmg
+
+      - name: Upload dSYMs
+        uses: actions/upload-artifact@v4
+        with: { name: dSYM, path: build/dSYM }
+
+  release:
+    name: GitHub release
+    needs: build-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-15
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/download-artifact@v4
+        with: { name: Claudio.app, path: build }
+      - uses: actions/download-artifact@v4
+        with: { name: dSYM, path: build/dSYM }
+      - name: Verify tag matches VERSION
+        run: |
+          test "v$(cat VERSION)" = "${GITHUB_REF_NAME}" || { echo "VERSION file ($(cat VERSION)) != tag ($GITHUB_REF_NAME)"; exit 1; }
+      - name: Package
+        run: |
+          V=$(cat VERSION)
+          mv build/Claudio.zip "build/Claudio-$V.zip"
+          mv build/Claudio.dmg "build/Claudio-$V.dmg"
+          ditto -c -k build/dSYM "build/Claudio-$V-dSYM.zip"
+          (cd build && shasum -a 256 "Claudio-$V.dmg" "Claudio-$V.zip" "Claudio-$V-dSYM.zip" > "Claudio-$V.sha256")
+      - name: Create release
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          V=$(cat VERSION)
+          ASSETS=("build/Claudio-$V.dmg" "build/Claudio-$V.zip" "build/Claudio-$V-dSYM.zip" "build/Claudio-$V.sha256")
+          if gh release view "v$V" >/dev/null 2>&1; then
+            gh release upload "v$V" --clobber "${ASSETS[@]}"
+          else
+            gh release create "v$V" --title "Claudio $V" --notes-file CHANGELOG.md "${ASSETS[@]}"
+          fi

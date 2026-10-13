@@ -46,8 +46,8 @@ There is no daemon separate from the app. Quitting the app stops everything. "La
 | `ClaudioControlProtocol` | library | Foundation only | The `ControlEnvelope`, `ControlRequest`, `ControlResult`, `StatusReport`, `SessionSummary` and `HookEvent` Codable types shared by the app and the CLI. Deliberately tiny so the CLI never links AVFoundation. |
 | `ClaudioCore` | library | ClaudioControlProtocol, Foundation, AVFoundation (for `AVAudioPCMBuffer` only), os | Transcript model and parsing, session registry, arbiter, speech text rendering, segmentation, scheduling, playback engine, control server, settings model. No AppKit, no SwiftUI. |
 | `ClaudioBackends` | library | ClaudioCore, AVFoundation, AudioToolbox | `TTSBackend` implementations: `EdgeTTSBackend`, `AppleSpeechBackend`, `OpenAITTSBackend`, `FallbackBackend`, plus `VoiceCatalog`. |
-| `ClaudioApp` | executable | ClaudioCore, ClaudioBackends, AppKit, SwiftUI, ServiceManagement, [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) | The menu bar app. Composition root in `ClaudioApp.swift`. |
-| `ClaudioCLI` | executable (product name `claudio`) | ClaudioControlProtocol, [swift-argument-parser](https://github.com/apple/swift-argument-parser) | CLI and hook receiver. Must start in under 20 ms; it must not link ClaudioCore, AVFoundation or AppKit. |
+| `ClaudioApp` | executable | ClaudioCore, ClaudioBackends, AppKit, SwiftUI, ServiceManagement, [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) (vendored, D-29) | The menu bar app. Composition root in `ClaudioApp.swift`. |
+| `ClaudioCLI` | executable (product name `claudio-cli`, bundled as `Contents/Helpers/claudio`; D-30) | ClaudioControlProtocol, [swift-argument-parser](https://github.com/apple/swift-argument-parser) | CLI and hook receiver. Must start in under 20 ms; it must not link ClaudioCore, AVFoundation or AppKit. |
 | `ClaudioCoreTests` | test | ClaudioCore | Unit tests with fixtures. |
 | `ClaudioBackendsTests` | test | ClaudioBackends | Protocol conformance tests, Edge wire-protocol tests against a local mock WebSocket server, Apple backend smoke tests. |
 | `ClaudioIntegrationTests` | test | all | End-to-end: synthetic transcript writer → pipeline → `RecordingPlaybackSink`. |
@@ -177,7 +177,7 @@ public struct SynthesisRequest: Sendable {
 }
 
 public enum SynthesisEvent: Sendable {
-    case audio(AVAudioPCMBuffer)        // Float32, mono, 24_000 Hz, non-interleaved
+    case audio(PCMBuffer)               // Sendable value type: Float32 samples, mono, 24_000 Hz (D-28)
     case wordBoundary(textRange: Range<String.Index>, audioOffset: TimeInterval, duration: TimeInterval)
     case finished
 }
@@ -214,7 +214,7 @@ public struct Utterance: Sendable {
 
 // Speech/PlaybackSink.swift
 public protocol PlaybackSink: AnyObject, Sendable {
-    func enqueue(_ buffer: AVAudioPCMBuffer, segmentID: UUID) async
+    func enqueue(_ buffer: PCMBuffer, segmentID: UUID) async      // D-28
     func markSegmentEnd(_ segmentID: UUID) async
     func pause() async
     func resume() async
@@ -297,8 +297,8 @@ Announcements (`event` items from any session) are injected in any mode except `
 | Purpose | Path |
 |---------|------|
 | App bundle | `/Applications/Claudio.app` (or wherever the user puts it) |
-| CLI binary | `<bundle>/Contents/MacOS/claudio` |
-| Hook command written to settings.json | `<bundle>/Contents/MacOS/claudio hook` |
+| CLI binary | `<bundle>/Contents/Helpers/claudio` (D-30; the SwiftPM product is `claudio-cli`) |
+| Hook command written to settings.json | `<bundle>/Contents/Helpers/claudio hook` (D-30) |
 | Application Support | `~/Library/Application Support/Claudio/` |
 | Control socket | `~/Library/Application Support/Claudio/claudio.sock` (if the absolute path exceeds the 104-byte `sockaddr_un` limit, `Paths` falls back to `/tmp/claudio-<uid>.sock` and both app and CLI apply the same rule; `CLAUDIO_SOCKET` overrides) |
 | Per-project preferences | `~/Library/Application Support/Claudio/projects.json` (default level, optional display name and mute per project; document 08 §4) |

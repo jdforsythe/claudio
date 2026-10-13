@@ -1,0 +1,9 @@
+heading|Summary
+sentence|The parser attaches at end of file and never replays history.
+sentence|See Transcript Tailer dot swift for details, or the docs.
+tableRow|Metric: Gap, Budget: 50 ms.
+tableRow|Metric: Cancel, Budget: 100 ms.
+cue|Swift code block.
+listItem|First item.
+listItem|Second item with snake case name.
+sentence|Done

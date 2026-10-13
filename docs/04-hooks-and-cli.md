@@ -25,25 +25,25 @@ Claudio writes the following into the `hooks` object of `~/.claude/settings.json
 {
   "hooks": {
     "UserPromptSubmit": [
-      { "hooks": [ { "type": "command", "command": "<bundle>/Contents/MacOS/claudio hook", "async": true } ] }
+      { "hooks": [ { "type": "command", "command": "<bundle>/Contents/Helpers/claudio hook", "async": true } ] }
     ],
     "Stop": [
-      { "hooks": [ { "type": "command", "command": "<bundle>/Contents/MacOS/claudio hook", "async": true } ] }
+      { "hooks": [ { "type": "command", "command": "<bundle>/Contents/Helpers/claudio hook", "async": true } ] }
     ],
     "StopFailure": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/MacOS/claudio hook", "async": true } ] }
+      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/Helpers/claudio hook", "async": true } ] }
     ],
     "SubagentStop": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/MacOS/claudio hook", "async": true } ] }
+      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/Helpers/claudio hook", "async": true } ] }
     ],
     "Notification": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/MacOS/claudio hook", "async": true } ] }
+      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/Helpers/claudio hook", "async": true } ] }
     ],
     "SessionStart": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/MacOS/claudio hook", "async": true } ] }
+      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/Helpers/claudio hook", "async": true } ] }
     ],
     "SessionEnd": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/MacOS/claudio hook", "async": true } ] }
+      { "matcher": "", "hooks": [ { "type": "command", "command": "<bundle>/Contents/Helpers/claudio hook", "async": true } ] }
     ]
   }
 }
@@ -55,7 +55,7 @@ Design points:
 - **`PreToolUse` / `PostToolUse` are not installed.** The tail already sees every tool block; those hooks would fire for every tool call and add process spawns for nothing.
 - **`MessageDisplay` is not installed in v1.** Claude Code writes an assistant message to the transcript only when the whole message completes (measured, document 03 §6.3), so narration that precedes a long tool call reaches the tail late. `MessageDisplay` fires while text streams and would close that gap, but it delivers the same text the tail later delivers, so it needs text-level dedup against transcript records, and the spawn-per-message cost applies. The measured latency is accepted for v1; `MessageDisplay` is the designated path if a later version wants earlier narration, and the receiver already forwards it unchanged (§6 drops it at `.debug`).
 - **One command string, no arguments beyond `hook`.** The event name and session come from the JSON on stdin.
-- **The command path contains the bundle.** The marker Claudio uses to recognise its own entries is the suffix `/Contents/MacOS/claudio hook` together with a bundle name ending in `Claudio.app`. This survives the user moving the app, because the installer repairs the path (§3.5).
+- **The command path contains the bundle.** The marker Claudio uses to recognise its own entries is the suffix `/Contents/Helpers/claudio hook` (or the pre-D-30 `/Contents/MacOS/claudio hook`) together with a bundle name ending in `Claudio.app`. This survives the user moving the app, because the installer repairs the path (§3.5).
 
 ## 3. `HookInstaller`
 
@@ -104,7 +104,7 @@ Groups that are not ours are never reordered, modified or removed. Orca rewrites
 A group is ours when it has exactly one hook, that hook's `type` is `command`, and its `command` matches the regex
 
 ```
-^(.*/Claudio\.app)/Contents/MacOS/claudio hook$
+^(.*/Claudio\.app)/Contents/(?:Helpers|MacOS)/claudio hook$
 ```
 
 The capture is the installed bundle path. Legacy or hand-edited entries pointing at a bundle named differently are not ours and are left alone.
@@ -302,7 +302,7 @@ Tests: `HookEventTests.testDecodeEachInstalledEvent` (fixture payload per event 
 
 ## 7. The `claudio` CLI
 
-Installed at `<bundle>/Contents/MacOS/claudio`; optionally symlinked to `/usr/local/bin/claudio` by `claudio link`. Built with `swift-argument-parser`. Every command connects to the control socket, sends one request, prints the response, and exits.
+Installed at `<bundle>/Contents/Helpers/claudio` (D-30); optionally symlinked to `/usr/local/bin/claudio` by `claudio link`. Built with `swift-argument-parser`. Every command connects to the control socket, sends one request, prints the response, and exits.
 
 ### 7.1 Global options
 
@@ -406,7 +406,7 @@ Claudio is a menu bar app that reads Claude Code sessions aloud. This skill cont
 ## Instructions
 Run exactly one of the following shell commands based on the argument, then report its output in one line. Do not add commentary. `CLAUDIO` resolves to the bundled CLI; fall back to the symlink.
 
-CLAUDIO="/Applications/Claudio.app/Contents/MacOS/claudio"; [ -x "$CLAUDIO" ] || CLAUDIO="claudio"
+CLAUDIO="/Applications/Claudio.app/Contents/Helpers/claudio"; [ -x "$CLAUDIO" ] || CLAUDIO="claudio"
 
 - no argument or `on`:     $CLAUDIO switch
 - `off`:                   $CLAUDIO level quiet

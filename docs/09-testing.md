@@ -15,7 +15,7 @@ Rules that follow:
 - Unit tests cover every branch of every classification heuristic and every rewrite rule. The fixture corpus (§2) is the source of truth for transcript shapes.
 - One **network-gated live smoke test** exists per cloud backend. CI never runs it.
 - UI is tested at the view-model layer with XCTest. There is no XCUITest automation; the manual QA checklist (§7) covers the real app.
-- Tests run with `swift test`. There is no Xcode project and no scheme.
+- Tests run with `swift test` where XCTest is available (Xcode, CI) and with `swift run claudio-tests` through an XCTest-compatible shim where it is not (Command Line Tools only); `make test` picks the right one (decision D-32). There is no Xcode project and no scheme. The implemented suite uses the module's `ManualClock` (document 02's `TestClock`) and `RecordingPlaybackSink`; see `Tests/README.md` for the mapping from the catalogue below to the files that exist.
 
 ### Naming convention
 

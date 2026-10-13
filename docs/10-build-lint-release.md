@@ -10,12 +10,12 @@ Claudio is built entirely with the Swift Package Manager from the Command Line T
 | Homebrew | current | brew.sh | Package manager |
 | SwiftLint | 0.59.x pinned in `Brewfile` | `brew install swiftlint` | Linting |
 | swift-format | 601.x pinned in `Brewfile` | `brew install swift-format` | Formatting (the Homebrew build is used even though the 6.3 toolchain ships `swift format`, so every machine and CI format identically) |
-| create-dmg | optional | `brew install create-dmg` | `make dmg` |
+| create-dmg | not needed | — | `make dmg` uses `hdiutil` via `scripts/make-dmg.sh` |
 | gh | optional | `brew install gh` | release job and local release publishing |
 
 `Brewfile` at the repo root lists swiftlint, swift-format, create-dmg and gh. `make bootstrap` runs `brew bundle` and verifies the Swift version.
 
-Xcode is not required. `xcodebuild`, `xctrace`, Instruments and SwiftUI previews are unavailable; document 11 §4 covers performance work without them.
+Xcode is not required. `xcodebuild`, `xctrace`, Instruments and SwiftUI previews are unavailable; document 11 §4 covers performance work without them. Two consequences surfaced during implementation: the `#Preview` macro cannot be expanded by the Command Line Tools (hence the vendored KeyboardShortcuts, D-29), and SwiftPM products that differ only in case collide on the default case-insensitive APFS volume (hence the `claudio-cli` product name, D-30).
 
 ## 2. `Package.swift`
 
@@ -35,13 +35,13 @@ let package = Package(
     platforms: [.macOS(.v15)],
     products: [
         .executable(name: "Claudio", targets: ["ClaudioApp"]),
-        .executable(name: "claudio", targets: ["ClaudioCLI"]),
+        .executable(name: "claudio-cli", targets: ["ClaudioCLI"]),   // bundled as Contents/Helpers/claudio (D-30)
         .library(name: "ClaudioControlProtocol", targets: ["ClaudioControlProtocol"]),
         .library(name: "ClaudioCore", targets: ["ClaudioCore"]),
         .library(name: "ClaudioBackends", targets: ["ClaudioBackends"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", exact: "2.3.0"),
+        .package(path: "Vendor/KeyboardShortcuts"),   // vendored without #Preview blocks (D-29)
         .package(url: "https://github.com/apple/swift-argument-parser", exact: "1.5.1"),
     ],
     targets: [
@@ -85,7 +85,7 @@ let package = Package(
             ],
             path: "Sources/ClaudioApp",
             resources: [
-                .copy("../../Resources/sounds"),
+                .copy("Resources/sounds"),   // SwiftPM requires resources inside the target directory
             ],
             swiftSettings: strictConcurrency,
             linkerSettings: [
@@ -178,8 +178,8 @@ release:              ## Release build with debug symbols (dSYM kept for symboli
 	dsymutil $(BUILD_DIR)/release/Claudio -o $(APP_DIR)/dSYM/Claudio.dSYM
 	dsymutil $(BUILD_DIR)/release/claudio -o $(APP_DIR)/dSYM/claudio.dSYM
 
-test: build           ## Run all tests in parallel; built-product tests enabled
-	CLAUDIO_BUILT_PRODUCTS=$(PWD)/$(BUILD_DIR)/debug swift test --parallel
+test: build           ## Run all tests (swift test with Xcode; shim runner with Command Line Tools, D-32)
+	scripts/run-tests.sh
 
 coverage:             ## Run tests with coverage and enforce thresholds
 	CLAUDIO_BUILT_PRODUCTS=$(PWD)/$(BUILD_DIR)/debug swift test --parallel --enable-code-coverage
@@ -211,11 +211,10 @@ logs:                 ## Stream unified logs for the app
 clean:
 	rm -rf $(BUILD_DIR) $(APP_DIR)
 
-dmg: app              ## Build a drag-to-Applications DMG
-	rm -f $(APP_DIR)/Claudio-$(VERSION).dmg
-	create-dmg --volname "Claudio $(VERSION)" --window-size 540 380 --icon-size 128 \
-	  --icon "Claudio.app" 140 180 --app-drop-link 400 180 \
-	  "$(APP_DIR)/Claudio-$(VERSION).dmg" "$(APP)"
+dmg: app              ## Build a drag-to-Applications DMG (scripts/make-dmg.sh, hdiutil only)
+	SIGN_IDENTITY="$(SIGN_IDENTITY)" scripts/make-dmg.sh "$(APP_DIR)/Claudio-$(VERSION).dmg"
+
+release-assets: dmg zip   ## DMG, zip and sha256 file for a GitHub release
 
 notarize: app         ## Developer ID path only: notarize and staple (needs keychain profile "claudio-notary")
 	scripts/notarize.sh "$(APP)" claudio-notary
@@ -257,11 +256,12 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 # Binaries
 cp "$PRODUCTS/Claudio" "$APP/Contents/MacOS/Claudio"
-cp "$PRODUCTS/claudio" "$APP/Contents/MacOS/claudio"
-chmod 755 "$APP/Contents/MacOS/Claudio" "$APP/Contents/MacOS/claudio"
+mkdir -p "$APP/Contents/Helpers"
+cp "$PRODUCTS/claudio-cli" "$APP/Contents/Helpers/claudio"      # D-30: case-insensitive APFS forbids claudio/Claudio in one dir
+chmod 755 "$APP/Contents/MacOS/Claudio" "$APP/Contents/Helpers/claudio"
 
 # Guard: the CLI must not link audio or UI frameworks (startup budget 20 ms).
-if otool -L "$APP/Contents/MacOS/claudio" | grep -qE 'AVFoundation|AppKit|SwiftUI'; then
+if otool -L "$APP/Contents/Helpers/claudio" | grep -qE 'AVFoundation|AppKit|SwiftUI'; then
   echo "✗ claudio links a forbidden framework" >&2; exit 1
 fi
 
@@ -281,10 +281,10 @@ fi
 # Sign. Inner binary first, then the bundle. Hardened runtime only for Developer ID.
 ENT="$ROOT/Resources/Claudio.entitlements"
 if [ "$SIGN" = "-" ]; then
-  codesign --force --sign - --entitlements "$ENT" "$APP/Contents/MacOS/claudio"
+  codesign --force --sign - --entitlements "$ENT" "$APP/Contents/Helpers/claudio"
   codesign --force --sign - --entitlements "$ENT" --identifier com.jdforsythe.claudio "$APP"
 else
-  codesign --force --sign "$SIGN" --options runtime --timestamp --entitlements "$ENT" "$APP/Contents/MacOS/claudio"
+  codesign --force --sign "$SIGN" --options runtime --timestamp --entitlements "$ENT" "$APP/Contents/Helpers/claudio"
   codesign --force --sign "$SIGN" --options runtime --timestamp --entitlements "$ENT" "$APP"
 fi
 codesign --verify --deep --strict "$APP"

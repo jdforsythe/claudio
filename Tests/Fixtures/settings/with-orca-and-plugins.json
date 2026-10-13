@@ -1,0 +1,17 @@
+{
+  "permissions": { "allow": ["Bash(git status:*)"], "defaultMode": "auto" },
+  "model": "fable",
+  "hooks": {
+    "Notification": [
+      { "hooks": [ { "type": "command", "command": "/Users/fixture/.config/iterm2/cc-status" } ] }
+    ],
+    "Stop": [
+      { "matcher": "", "hooks": [ { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/bin/hook-wrapper.sh handle-hook Stop", "timeout": 30 } ] },
+      { "hooks": [ { "type": "command", "command": "/Applications/Orca.app/Contents/Resources/orca-hook stop", "async": true } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "/Users/fixture/.config/iterm2/cc-status" } ] }
+    ]
+  },
+  "customKey": { "nested": [1, 2, 3] }
+}
