@@ -54,7 +54,8 @@ final class SynthesisSchedulerTests: XCTestCase {
         await pipeline.enqueue(item("A long sentence that will be cancelled before synthesis completes in the mock. Another one just like it follows."))
         try? await Task.sleep(for: .milliseconds(50))
         await pipeline.cancelSession("s", reason: .userPrompt)
-        XCTAssertGreaterThanOrEqual(backend.cancelledCount, 1)
+        let cancelled = await waitUntil(2) { backend.cancelledCount >= 1 }
+        XCTAssertTrue(cancelled, "synthesis tasks were cancelled")
         let emptied = await waitUntil(1) { await pipeline.currentState.queuedSegments == 0 }
         XCTAssertTrue(emptied)
     }
