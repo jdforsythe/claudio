@@ -17,10 +17,27 @@ enum ChimeResources {
         return out
     }
 
+    /// The SwiftPM resource bundle, found without `Bundle.module`: that accessor falls back to an absolute path
+    /// inside the machine that built the app and calls `fatalError` when neither location exists, which crashed
+    /// the app on every machine but the build machine. Returns nil when the bundle is absent (chimes are synthesized).
+    static let resourceBundle: Bundle? = {
+        let name = "Claudio_ClaudioApp.bundle"
+        let candidates: [URL?] = [
+            Bundle.main.resourceURL?.appendingPathComponent(name),      // Claudio.app/Contents/Resources
+            Bundle.main.bundleURL.appendingPathComponent(name),         // unbundled: .build/<config>/
+            Bundle.main.executableURL?.deletingLastPathComponent().appendingPathComponent(name),
+        ]
+        for url in candidates.compactMap({ $0 }) where FileManager.default.fileExists(atPath: url.path) {
+            if let bundle = Bundle(url: url) { return bundle }
+        }
+        Log.ui.notice("resource bundle \(name) not found; chimes will be synthesized")
+        return nil
+    }()
+
     private static func resourceURL(_ chime: Chime) -> URL? {
         let candidates: [URL?] = [
-            Bundle.module.url(forResource: chime.resourceName, withExtension: "aiff", subdirectory: "sounds"),
-            Bundle.module.url(forResource: chime.resourceName, withExtension: "wav", subdirectory: "sounds"),
+            resourceBundle?.url(forResource: chime.resourceName, withExtension: "aiff", subdirectory: "sounds"),
+            resourceBundle?.url(forResource: chime.resourceName, withExtension: "wav", subdirectory: "sounds"),
             Bundle.main.url(forResource: chime.resourceName, withExtension: "aiff"),
         ]
         return candidates.compactMap { $0 }.first

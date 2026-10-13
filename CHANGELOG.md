@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 — 2026-10-13
+
+- Fix a crash on launch on any machine other than the one that built the app: the SwiftPM `Bundle.module` accessor fell back to an absolute path inside the build checkout and called `fatalError` when it was missing. The resource bundle is now located explicitly, and a missing bundle only means synthesized chimes.
+
 ## 0.1.0 — 2026-10-09
 
 Initial implementation of the design in `docs/`:
